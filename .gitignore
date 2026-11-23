@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+ENV/
+.venv/
+
+# Environment Variables
+.env
+
+# Testing & Logs
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Generated Temporary Media
+static/audio/doctor_*.mp3
+static/frames/frame_*.jpg
+
+# Large Checkpoints (GitHub rejects files > 100MB; ViT is ~1GB)
+models/checkpoints/*.pt
+models/checkpoints/*.pth
+
+# OS files
+.DS_Store
+Thumbs.db

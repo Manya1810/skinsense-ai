@@ -1,0 +1,9 @@
+lesion_id,image_id,dx,dx_type,age,sex,localization,image_path
+HAM_000101,ISIC_0000003,akiec,histo,57,male,abdomen,C:\Users\Acer\Downloads\ai-skin-specialist-main (2)\ai-skin-specialist-main\data\ham10000_sample\images\ISIC_0000003.jpg
+HAM_000101,ISIC_0000004,akiec,histo,25,male,trunk,C:\Users\Acer\Downloads\ai-skin-specialist-main (2)\ai-skin-specialist-main\data\ham10000_sample\images\ISIC_0000004.jpg
+HAM_000122,ISIC_0000017,bkl,histo,45,female,lower extremity,C:\Users\Acer\Downloads\ai-skin-specialist-main (2)\ai-skin-specialist-main\data\ham10000_sample\images\ISIC_0000017.jpg
+HAM_000122,ISIC_0000018,bkl,histo,42,male,chest,C:\Users\Acer\Downloads\ai-skin-specialist-main (2)\ai-skin-specialist-main\data\ham10000_sample\images\ISIC_0000018.jpg
+HAM_000141,ISIC_0000027,mel,histo,71,female,back,C:\Users\Acer\Downloads\ai-skin-specialist-main (2)\ai-skin-specialist-main\data\ham10000_sample\images\ISIC_0000027.jpg
+HAM_000141,ISIC_0000028,mel,histo,38,unknown,face,C:\Users\Acer\Downloads\ai-skin-specialist-main (2)\ai-skin-specialist-main\data\ham10000_sample\images\ISIC_0000028.jpg
+HAM_000160,ISIC_0000037,vasc,histo,35,male,lower extremity,C:\Users\Acer\Downloads\ai-skin-specialist-main (2)\ai-skin-specialist-main\data\ham10000_sample\images\ISIC_0000037.jpg
+HAM_000160,ISIC_0000038,vasc,histo,40,unknown,lower extremity,C:\Users\Acer\Downloads\ai-skin-specialist-main (2)\ai-skin-specialist-main\data\ham10000_sample\images\ISIC_0000038.jpg

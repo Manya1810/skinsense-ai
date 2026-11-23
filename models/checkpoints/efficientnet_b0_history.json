@@ -1,0 +1,41 @@
+{
+  "model_name": "efficientnet_b0",
+  "epochs": 2,
+  "best_val_macro_f1": 0.0,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.9854804107121058,
+      "train_acc": 0.14285714285714285,
+      "val_loss": 1.9499671459197998,
+      "val_acc": 0.0,
+      "val_macro_f1": 0.0,
+      "val_recalls": {
+        "akiec": 0.0,
+        "bcc": 0.0,
+        "bkl": 0.0,
+        "df": 0.0,
+        "mel": 0.0,
+        "nv": 0.0,
+        "vasc": 0.0
+      }
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.9362358365740096,
+      "train_acc": 0.14285714285714285,
+      "val_loss": 1.961103916168213,
+      "val_acc": 0.0,
+      "val_macro_f1": 0.0,
+      "val_recalls": {
+        "akiec": 0.0,
+        "bcc": 0.0,
+        "bkl": 0.0,
+        "df": 0.0,
+        "mel": 0.0,
+        "nv": 0.0,
+        "vasc": 0.0
+      }
+    }
+  ]
+}

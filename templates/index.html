@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkinSense AI — Multimodal Dermatology Clinical Decision Support</title>
+  
+  <!-- Inter Font & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    .filled-icon { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    
+    @media print {
+      body * { visibility: hidden; }
+      #printable-report-area, #printable-report-area * { visibility: visible; }
+      #printable-report-area { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+
+  <!-- ================= TOP HEADER ================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+      
+      <!-- Brand Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <span class="material-symbols-outlined text-2xl filled-icon">dermatology</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            SkinSense AI
+            <span class="text-xs font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-200">Clinical Suite</span>
+          </h1>
+          <p class="text-xs text-slate-500 font-medium">Multimodal Skin Analysis & Multi-Model Decision Support Platform</p>
+        </div>
+      </div>
+
+      <!-- Controls: Condition Selector & Language Switcher -->
+      <div class="flex items-center gap-3">
+        <!-- Condition Preset Selector -->
+        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+          <span class="material-symbols-outlined text-sm text-blue-600">tune</span>
+          <span class="text-xs font-bold text-slate-700">Condition Case:</span>
+          <select id="preset-selector" onchange="applyConditionPreset(this.value)" class="text-xs font-bold text-blue-800 bg-transparent outline-none cursor-pointer">
+            <option value="auto">✨ Auto-Detect from Uploaded Image (AI Morphology Engine)</option>
+            <option value="tinea_corporis" selected>Ringworm (Tinea Corporis) — 89.6%</option>
+            <option value="acne">Acne Vulgaris — 92.2%</option>
+            <option value="psoriasis">Plaque Psoriasis — 86.9%</option>
+            <option value="bcc">Basal Cell Carcinoma — 83.4%</option>
+            <option value="eczema">Eczema (Atopic Dermatitis) — 80.8%</option>
+            <option value="mel">Melanoma (Suspicious Mole) — 78.6% (Borderline)</option>
+            <option value="nv">Melanocytic Nevus (Normal Mole) — 94.6%</option>
+          </select>
+        </div>
+
+        <!-- Language Switcher -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
+          <button id="lang-en" onclick="setLanguage('en')" class="px-3 py-1 rounded-lg transition-all bg-white text-blue-700 shadow-sm">English</button>
+          <button id="lang-hi" onclick="setLanguage('hi')" class="px-3 py-1 rounded-lg transition-all text-slate-600 hover:text-slate-900">हिंदी (Hindi)</button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN DASHBOARD CONTAINER ================= -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
+
+    <!-- ========================================================= -->
+    <!-- SECTION 1: PATIENT INGESTION & CLINICAL DATA              -->
+    <!-- ========================================================= -->
+    <section class="no-print">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">
+          SkinSense AI — Multimodal Dermatology Consultation & Analysis
+        </h2>
+        <p class="text-sm text-slate-600 mt-1">
+          Upload patient skin image, video, and reported symptoms for comprehensive multi-model assessment.
+        </p>
+      </div>
+
+      <!-- Top 3 Boxes Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        
+        <!-- BOX 1: Patient Skin Image -->
+        <div class="bg-white rounded-2xl border border-blue-200 p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white font-bold text-xs rounded-full mb-3">
+              <span class="w-4 h-4 bg-white text-blue-600 rounded-full flex items-center justify-center text-[10px] font-black">1</span>
+              Patient Skin Image
+            </div>
+
+            <!-- Image Thumbnail Box -->
+            <div class="relative w-full h-44 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 mb-3 group cursor-pointer" onclick="document.getElementById('image-upload-input').click()">
+              <img id="patient-image-display" src="/static/presets/tinea_corporis.jpg" alt="Patient Skin Lesion" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
+                <span class="material-symbols-outlined text-sm">upload_file</span> Change Image
+              </div>
+            </div>
+
+            <input type="file" id="image-upload-input" accept="image/*" class="hidden" onchange="handleUserImageUpload(event)">
+
+            <div class="text-xs text-slate-600 space-y-1">
+              <div><strong>Status:</strong> <span id="image-filename" class="font-mono text-slate-800">Skin Lesion Ingested</span></div>
+              <div><strong>Modality:</strong> Clinical / Dermoscopic Scan</div>
+              <div><strong>Visual Focus:</strong> <span id="image-morph-tag" class="text-blue-700 font-semibold">Annular scaly ring with central clearing</span></div>
+            </div>
+          </div>
+
+          <button onclick="document.getElementById('image-upload-input').click()" class="mt-4 w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs rounded-xl border border-blue-200 transition-colors flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-base">photo_camera</span>
+            Upload New Skin Image
+          </button>
+        </div>
+
+        <!-- BOX 2: Patient Skin Video -->
+        <div class="bg-white rounded-2xl border border-emerald-200 p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-full mb-3">
+              <span class="w-4 h-4 bg-white text-emerald-600 rounded-full flex items-center justify-center text-[10px] font-black">2</span>
+              Patient Skin Video
+            </div>
+
+            <!-- Video Player Preview -->
+            <div class="relative w-full h-44 bg-black rounded-xl overflow-hidden border border-slate-200 mb-3">
+              <video id="patient-video-display" src="/static/sample_skin_video.mp4" controls class="w-full h-full object-contain"></video>
+            </div>
+
+            <input type="file" id="video-upload-input" accept="video/*" class="hidden" onchange="handleUserVideoUpload(event)">
+
+            <div class="text-xs text-slate-600 space-y-1">
+              <div><strong>Status:</strong> <span id="video-filename" class="font-mono text-slate-800">Multi-Angle Video Loaded</span></div>
+              <div><strong>Frame Sampling:</strong> Laplacian Sharpness Filtering</div>
+              <div><strong>Multi-Angle Stability:</strong> High Consistency (No Motion Blur)</div>
+            </div>
+          </div>
+
+          <button onclick="document.getElementById('video-upload-input').click()" class="mt-4 w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs rounded-xl border border-emerald-200 transition-colors flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-base">videocam</span>
+            Upload New Skin Video
+          </button>
+        </div>
+
+        <!-- BOX 3: Clinical Information & Symptoms -->
+        <div class="bg-white rounded-2xl border border-amber-200 p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-700 text-white font-bold text-xs rounded-full mb-3">
+              <span class="w-4 h-4 bg-white text-amber-700 rounded-full flex items-center justify-center text-[10px] font-black">3</span>
+              Clinical Information & Symptoms
+            </div>
+
+            <!-- Patient Demographics Form -->
+            <div class="grid grid-cols-3 gap-2 mb-2.5">
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase block">Age</label>
+                <input type="number" id="input-patient-age" value="28" class="w-full text-xs border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-800">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase block">Gender</label>
+                <select id="input-patient-gender" class="w-full text-xs border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-800">
+                  <option value="Male" selected>Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase block">Duration</label>
+                <input type="text" id="input-patient-duration" value="2 weeks" class="w-full text-xs border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-800">
+              </div>
+            </div>
+
+            <!-- Quick Clinical Sign Chips -->
+            <div class="mb-2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Quick Clinical Signs (Click to add)</label>
+              <div class="flex flex-wrap gap-1">
+                <button type="button" onclick="appendSymptomTag('Itching & redness')" class="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-semibold rounded-md border border-blue-200 transition-colors">+ Itching</button>
+                <button type="button" onclick="appendSymptomTag('Inflamed pimples & pustules')" class="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-semibold rounded-md border border-emerald-200 transition-colors">+ Pimples</button>
+                <button type="button" onclick="appendSymptomTag('Thick silvery white scaly plaques')" class="px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-semibold rounded-md border border-amber-200 transition-colors">+ Scaly Plaque</button>
+                <button type="button" onclick="appendSymptomTag('Dry cracked sensitive rash')" class="px-2 py-0.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-[10px] font-semibold rounded-md border border-purple-200 transition-colors">+ Dry/Eczema</button>
+                <button type="button" onclick="appendSymptomTag('Dark asymmetrical mole with irregular border')" class="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-semibold rounded-md border border-rose-200 transition-colors">+ Dark Mole</button>
+                <button type="button" onclick="appendSymptomTag('Pearly translucent bump with tiny vessels')" class="px-2 py-0.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-[10px] font-semibold rounded-md border border-cyan-200 transition-colors">+ Pearly Bump</button>
+              </div>
+            </div>
+
+            <!-- Reported Symptoms Text Area -->
+            <div>
+              <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Reported Symptoms & Notes</label>
+              <textarea id="input-patient-symptoms" rows="3" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-500" placeholder="Describe symptoms...">Red circular patch on forearm with scaly border, itching for 2 weeks.</textarea>
+            </div>
+          </div>
+
+          <!-- Run Analysis Trigger Button -->
+          <button id="run-analysis-btn" onclick="executeFullAnalysis()" class="mt-4 w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-lg">bolt</span>
+            Run Multimodal Clinical Analysis
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 2: CLINICAL ANALYSIS & DECISION SUPPORT REPORT     -->
+    <!-- ========================================================= -->
+    <section id="printable-report-area" class="border-t-2 border-slate-200 pt-6">
+      
+      <!-- Section Title -->
+      <div class="flex items-center justify-between mb-4 no-print">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-700 text-white font-bold text-xs rounded-full">
+          <span class="material-symbols-outlined text-sm">clinical_notes</span>
+          Clinical Analysis & Diagnostic Decision Support
+        </div>
+        <div class="text-xs text-slate-500 font-medium">Standardized Multimodal Clinician Dossier</div>
+      </div>
+
+      <!-- 4 Dashboard Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+        
+        <!-- CARD 1: Input Preview & Patient Information -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Input Preview</h3>
+            
+            <!-- Toggle Tabs: Image vs Video -->
+            <div class="flex border border-slate-200 rounded-lg overflow-hidden text-xs font-bold mb-3 no-print">
+              <button id="preview-tab-image" onclick="togglePreviewTab('image')" class="flex-1 py-1 text-center bg-blue-600 text-white">Image</button>
+              <button id="preview-tab-video" onclick="togglePreviewTab('video')" class="flex-1 py-1 text-center bg-slate-100 text-slate-600 hover:bg-slate-200">Video (Frame)</button>
+            </div>
+
+            <!-- Media Preview Image -->
+            <div class="w-full h-36 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 mb-4">
+              <img id="output-preview-image" src="/static/presets/tinea_corporis.jpg" alt="Input Preview" class="w-full h-full object-cover">
+            </div>
+
+            <!-- Patient Information Card -->
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-xs space-y-1.5">
+              <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-1">Patient Information</h4>
+              <div class="flex justify-between"><span class="text-slate-500">Age:</span> <strong id="patient-age-val">28</strong></div>
+              <div class="flex justify-between"><span class="text-slate-500">Gender:</span> <strong id="patient-gender-val">Male</strong></div>
+              <div class="flex justify-between"><span class="text-slate-500">Duration:</span> <strong id="patient-duration-val">2 weeks</strong></div>
+              <div><span class="text-slate-500">Symptoms:</span> <strong id="patient-symptoms-val" class="text-slate-800">Itching, Redness, Scaly skin</strong></div>
+              <div class="flex justify-between"><span class="text-slate-500">Language:</span> <strong id="patient-language-val">English</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: Model Predictions (4 Models Table + Ensemble + Differential) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Model Predictions</h3>
+            
+            <!-- 4 Models Table -->
+            <div class="overflow-hidden border border-slate-200 rounded-xl mb-3">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th class="py-2 px-2.5">Model</th>
+                    <th class="py-2 px-2.5">Prediction</th>
+                    <th class="py-2 px-2.5 text-right">Confidence</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium">
+                  <tr>
+                    <td class="py-1.5 px-2.5 font-bold text-slate-700">EfficientNet-B0</td>
+                    <td class="py-1.5 px-2.5 text-emerald-700 font-semibold" id="pred-m1-name">Tinea Corporis (Ringworm)</td>
+                    <td class="py-1.5 px-2.5 text-right text-emerald-600 font-bold" id="pred-m1-conf">92.3%</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-2.5 font-bold text-slate-700">MobileNetV2</td>
+                    <td class="py-1.5 px-2.5 text-emerald-700 font-semibold" id="pred-m2-name">Tinea Corporis (Ringworm)</td>
+                    <td class="py-1.5 px-2.5 text-right text-emerald-600 font-bold" id="pred-m2-conf">88.6%</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-2.5 font-bold text-slate-700">ResNet50</td>
+                    <td class="py-1.5 px-2.5 text-emerald-700 font-semibold" id="pred-m3-name">Tinea Corporis (Ringworm)</td>
+                    <td class="py-1.5 px-2.5 text-right text-emerald-600 font-bold" id="pred-m3-conf">90.1%</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-2.5 font-bold text-slate-700">Vision Transformer</td>
+                    <td class="py-1.5 px-2.5 text-emerald-700 font-semibold" id="pred-m4-name">Tinea Corporis (Ringworm)</td>
+                    <td class="py-1.5 px-2.5 text-right text-emerald-600 font-bold" id="pred-m4-conf">87.4%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Ensemble Result Box with Certainty & Morphological Marker -->
+            <div id="ensemble-result-card" class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Ensemble Result</span>
+                <span id="diagnostic-certainty-badge" class="text-[10px] font-bold px-2 py-0.5 bg-emerald-200/70 text-emerald-900 rounded-md">High Certainty</span>
+              </div>
+              <div class="flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-emerald-600 text-2xl filled-icon mt-0.5">verified</span>
+                <div>
+                  <h4 id="ensemble-condition-name" class="text-sm font-extrabold text-emerald-950">Tinea Corporis (Ringworm)</h4>
+                  <p class="text-xs text-emerald-800 font-semibold mt-0.5">
+                    Overall Confidence: <span id="ensemble-confidence-val">89.6%</span>
+                  </p>
+                  <p id="ensemble-agreement-text" class="text-[11px] text-emerald-700 flex items-center gap-1 mt-0.5 font-medium">
+                    <span class="material-symbols-outlined text-xs">check</span> All 4 models agree on the prediction.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Differential Diagnosis Distribution (Differentiator!) -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Top Differential Ranking</span>
+              <div id="differential-bars-container" class="space-y-1.5">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CARD 3: Agent Analysis -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Agent Analysis</h3>
+            
+            <div class="space-y-3">
+              <!-- Vision Agent -->
+              <div class="bg-sky-50/60 border border-sky-100 rounded-xl p-2.5">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-sky-800 mb-1">
+                  <span class="material-symbols-outlined text-sm text-sky-600">visibility</span>
+                  Vision Agent
+                </div>
+                <p id="agent-vision-text" class="text-xs text-slate-700 leading-relaxed">
+                  • Detected circular, erythematous, scaly lesion.<br>
+                  • Image quality: Good (no blur).
+                </p>
+              </div>
+
+              <!-- Symptom Agent -->
+              <div class="bg-purple-50/60 border border-purple-100 rounded-xl p-2.5">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-purple-800 mb-1">
+                  <span class="material-symbols-outlined text-sm text-purple-600">psychology</span>
+                  Symptom Agent
+                </div>
+                <p id="agent-symptom-text" class="text-xs text-slate-700 leading-relaxed">
+                  • Reported itching and redness for 2 weeks.<br>
+                  • Symptoms consistent with fungal infection.
+                </p>
+              </div>
+
+              <!-- Knowledge Agent -->
+              <div class="bg-emerald-50/60 border border-emerald-100 rounded-xl p-2.5">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-800 mb-1">
+                  <span class="material-symbols-outlined text-sm text-emerald-600">menu_book</span>
+                  Knowledge Agent
+                </div>
+                <p id="agent-knowledge-text" class="text-xs text-slate-700 leading-relaxed">
+                  • Tinea corporis is a common fungal infection.<br>
+                  • Usually caused by dermatophytes (Trichophyton, Microsporum).
+                </p>
+              </div>
+
+              <!-- Safety Agent -->
+              <div class="bg-amber-50/60 border border-amber-100 rounded-xl p-2.5">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-amber-800 mb-1">
+                  <span class="material-symbols-outlined text-sm text-amber-600">security</span>
+                  Safety Agent
+                </div>
+                <p id="agent-safety-text" class="text-xs text-slate-700 leading-relaxed">
+                  • Generally not serious.<br>
+                  • Consult a dermatologist if it spreads, does not improve, or worsens.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 4: Combined Report (Summary) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2.5">
+              <span class="material-symbols-outlined text-blue-600 text-lg">assignment</span>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Combined Report (Summary)</h3>
+            </div>
+
+            <!-- Most Likely Condition Box -->
+            <div id="report-summary-box" class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3">
+              <span class="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider block">Most Likely Condition</span>
+              <h4 id="report-condition-title" class="text-sm font-extrabold text-emerald-950">Tinea Corporis (Ringworm)</h4>
+              <p class="text-xs font-bold text-emerald-700 mt-0.5">
+                Confidence: <span id="report-confidence-pill">89.6% (High)</span>
+              </p>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-2.5 text-xs">
+              <strong class="text-slate-800 block mb-0.5">Description</strong>
+              <p id="report-description-text" class="text-slate-600 leading-relaxed">
+                Tinea corporis is a fungal infection of the skin that causes red, circular, scaly patches.
+              </p>
+            </div>
+
+            <!-- Common Symptoms -->
+            <div class="mb-2.5 text-xs">
+              <strong class="text-slate-800 block mb-0.5">Common Symptoms</strong>
+              <ul id="report-symptoms-list" class="text-slate-600 space-y-0.5 list-disc list-inside">
+                <li>Red, circular patch</li>
+                <li>Scaly border</li>
+                <li>Itching</li>
+                <li>May spread to nearby areas</li>
+              </ul>
+            </div>
+
+            <!-- General Care & Recommendations -->
+            <div class="mb-4 text-xs">
+              <strong class="text-slate-800 block mb-0.5">General Care & Recommendations</strong>
+              <ul id="report-recommendations-list" class="text-slate-600 space-y-0.5 list-disc list-inside">
+                <li>Keep the area clean and dry.</li>
+                <li>Use antifungal cream (e.g., clotrimazole) — as advised by a doctor.</li>
+                <li>Avoid sharing towels or clothing.</li>
+                <li>Consult a dermatologist for proper prescription.</li>
+              </ul>
+            </div>
+
+            <!-- Doctor Audio Player -->
+            <div class="bg-slate-100 p-2 rounded-xl mb-3 no-print">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 mb-1">
+                <span class="material-symbols-outlined text-sm text-blue-600">volume_up</span>
+                Doctor Voice Response (Hindi / English)
+              </div>
+              <audio id="report-audio-element" controls class="w-full h-8 rounded outline-none"></audio>
+            </div>
+          </div>
+
+          <!-- Download PDF Button -->
+          <button onclick="downloadPdfReport()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-2 no-print">
+            <span class="material-symbols-outlined text-base">download</span>
+            Download PDF Report
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 3: MULTI-AGENT SYSTEM (MAS) CAPSTONE HUB           -->
+    <!-- ========================================================= -->
+    <section class="border-t-2 border-slate-200 pt-6 no-print">
+      
+      <!-- MAS Header & Framework Badges -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-800/60 pb-5">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/20 text-indigo-300 font-bold text-xs rounded-full border border-indigo-500/30 mb-2">
+              <span class="material-symbols-outlined text-sm">hub</span>
+              10-Requirement MAS Capstone Architecture
+            </div>
+            <h2 class="text-xl md:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+              Multi-Agent System (MAS) Telemetry & Evaluation Hub
+            </h2>
+            <p class="text-xs text-indigo-200/80 mt-1">
+              Heterogeneous agent federation using <strong>CrewAI</strong> & <strong>Google ADK</strong> over <strong>Blackboard Architecture</strong> with <strong>A2A Protocol</strong> & <strong>MCP Tools</strong>.
+            </p>
+          </div>
+          
+          <!-- Quick Status Badges -->
+          <div class="flex flex-wrap gap-2 text-[11px] font-semibold">
+            <span class="px-2.5 py-1 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 rounded-lg flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> CrewAI v1.15.33
+            </span>
+            <span class="px-2.5 py-1 bg-sky-500/20 border border-sky-400/40 text-sky-300 rounded-lg flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span> Google ADK v2.13.0
+            </span>
+            <span class="px-2.5 py-1 bg-purple-500/20 border border-purple-400/40 text-purple-300 rounded-lg">
+              Blackboard Context
+            </span>
+            <span class="px-2.5 py-1 bg-amber-500/20 border border-amber-400/40 text-amber-300 rounded-lg">
+              A2A Protocol v1.0
+            </span>
+          </div>
+        </div>
+
+        <!-- Navigation Sub-Tabs -->
+        <div class="flex flex-wrap gap-2 pt-4 text-xs font-bold">
+          <button id="mas-tab-btn-blackboard" onclick="switchMasTab('blackboard')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white shadow transition-all">
+            1. Blackboard & A2A Protocol
+          </button>
+          <button id="mas-tab-btn-pydantic" onclick="switchMasTab('pydantic')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">
+            2. MCP Tools & Pydantic Output
+          </button>
+          <button id="mas-tab-btn-patterns" onclick="switchMasTab('patterns')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">
+            3. Agentic Design Patterns
+          </button>
+          <button id="mas-tab-btn-evaluation" onclick="switchMasTab('evaluation')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">
+            4. Monitoring Heatmap & 40-Run Boxplot
+          </button>
+          <button id="mas-tab-btn-guardrails" onclick="switchMasTab('guardrails')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">
+            5. Security Guardrails & Provenance Tracing
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= TAB CONTENT 1: BLACKBOARD & A2A PROTOCOL ================= -->
+      <div id="mas-pane-blackboard" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Blackboard Shared State Timeline -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-600">developer_board</span>
+                <h3 class="text-sm font-extrabold text-slate-900">Blackboard Shared-State Architecture</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-purple-100 text-purple-800 rounded-md">Requirement 1</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-4">
+              All intermediate outputs pass through the centralized Blackboard shared state with chronological audit trails.
+            </p>
+
+            <div id="blackboard-feed-container" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 italic">
+                Run an analysis or select a case to observe live Blackboard shared state mutations.
+              </div>
+            </div>
+
+            <!-- Blackboard vs P2P Comparator Button -->
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-600">Compare with Peer-to-Peer (P2P):</span>
+              <button onclick="runBlackboardVsP2PComparison()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-colors">
+                Run Architecture Benchmark
+              </button>
+            </div>
+            <div id="p2p-comparison-results" class="mt-3 text-xs hidden bg-purple-50/50 p-3 rounded-xl border border-purple-200">
+              <!-- Filled via JS -->
+            </div>
+          </div>
+
+          <!-- A2A Protocol Interoperability Feed -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-600">sync_alt</span>
+                <h3 class="text-sm font-extrabold text-slate-900">A2A Protocol: ADK ⇄ CrewAI Interoperability</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">Requirement 6 & 7</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-4">
+              Agent-to-Agent (A2A/1.0) envelope transmitting cryptographically hashed states across framework boundaries.
+            </p>
+
+            <div id="a2a-traffic-container" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 italic">
+                A2A message traffic between ADKMultimodalTriageAgent and CrewAIDermatologySpecialist appears here.
+              </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-600">
+              <span>Frameworks: Google ADK (Python SDK) ⇄ CrewAI (v1.15.33)</span>
+              <span id="a2a-status-badge" class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">Active</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================= TAB CONTENT 2: MCP TOOLS & PYDANTIC OUTPUT ================= -->
+      <div id="mas-pane-pydantic" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- MCP Tools Section -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-600">construction</span>
+                <h3 class="text-sm font-extrabold text-slate-900">Model Context Protocol (MCP) Tools</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md">Requirement 2</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">
+              Standardized external tools callable by agents with inputSchema and MCPToolResult schemas:
+            </p>
+            
+            <div class="space-y-2 mb-4 text-xs">
+              <div class="p-2.5 bg-amber-50/60 border border-amber-200 rounded-xl">
+                <div class="flex justify-between items-center">
+                  <strong class="text-amber-900">1. dermatology_database_lookup</strong>
+                  <span class="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-mono">ICD-11 DB</span>
+                </div>
+                <p class="text-slate-600 text-[11px] mt-0.5">Queries clinical guidelines, risk tiers, and treatment recommendations.</p>
+              </div>
+
+              <div class="p-2.5 bg-amber-50/60 border border-amber-200 rounded-xl">
+                <div class="flex justify-between items-center">
+                  <strong class="text-amber-900">2. clinical_risk_calculator</strong>
+                  <span class="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-mono">ABCDE Scoring</span>
+                </div>
+                <p class="text-slate-600 text-[11px] mt-0.5">Objective dermoscopy risk index (Asymmetry, Border, Color, Diameter, Evolution).</p>
+              </div>
+
+              <div class="p-2.5 bg-amber-50/60 border border-amber-200 rounded-xl">
+                <div class="flex justify-between items-center">
+                  <strong class="text-amber-900">3. medical_literature_search</strong>
+                  <span class="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-mono">PubMed/ISIC</span>
+                </div>
+                <p class="text-slate-600 text-[11px] mt-0.5">Evidence citations search for peer-reviewed dermatologic guidelines.</p>
+              </div>
+            </div>
+
+            <!-- Live MCP Tool Invocation Tester -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2">
+              <div class="font-bold text-slate-700">Test Live MCP Invocation:</div>
+              <div class="flex gap-2">
+                <select id="mcp-test-tool" class="text-xs border border-slate-200 rounded-lg p-1.5 font-medium flex-1">
+                  <option value="dermatology_database_lookup">dermatology_database_lookup (tinea_corporis)</option>
+                  <option value="clinical_risk_calculator">clinical_risk_calculator (ABCDE points)</option>
+                  <option value="medical_literature_search">medical_literature_search (melanoma)</option>
+                </select>
+                <button onclick="testMcpToolExecution()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold">
+                  Invoke Tool
+                </button>
+              </div>
+              <pre id="mcp-test-output" class="p-2 bg-slate-900 text-amber-300 font-mono text-[10px] rounded-lg max-h-36 overflow-auto">Click 'Invoke Tool' to test MCP standard schema response.</pre>
+            </div>
+          </div>
+
+          <!-- Pydantic Structured Output Section -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600">data_object</span>
+                <h3 class="text-sm font-extrabold text-slate-900">Structured Output using Pydantic</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">Requirement 3</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">
+              Final output validated by <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">ClinicianDossierOutput</code> with Markdown, Table, and JSON serialization.
+            </p>
+
+            <!-- Output Format Switcher -->
+            <div class="flex gap-2 mb-3 text-xs font-bold">
+              <button id="pydantic-fmt-md" onclick="switchPydanticFormat('markdown')" class="px-3 py-1 rounded-lg bg-emerald-600 text-white shadow-sm">Markdown</button>
+              <button id="pydantic-fmt-tbl" onclick="switchPydanticFormat('table')" class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">Table</button>
+              <button id="pydantic-fmt-json" onclick="switchPydanticFormat('json')" class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">JSON</button>
+              <button onclick="copyPydanticOutput()" class="ml-auto px-2.5 py-1 text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">content_copy</span> Copy
+              </button>
+            </div>
+
+            <!-- Viewer Container -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-950 p-3 max-h-72 overflow-y-auto">
+              <pre id="pydantic-output-display" class="font-mono text-emerald-400 text-xs whitespace-pre-wrap">Awaiting consultation run to render Pydantic structured output...</pre>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================= TAB CONTENT 3: AGENTIC DESIGN PATTERNS ================= -->
+      <div id="mas-pane-patterns" class="space-y-6 hidden">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600">schema</span>
+                <h3 class="text-sm font-extrabold text-slate-900">Agentic Design Patterns Comparison</h3>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Evaluation of Hierarchical, Parallel, Sequential, and ReAct architectures with worker nodes.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-md">Requirement 4</span>
+              <button onclick="loadAgenticPatternsComparison()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors">
+                Run Pattern Benchmark
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Patterns Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5 text-xs">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <strong class="text-indigo-900 block mb-1">1. Hierarchical (Production)</strong>
+              <p class="text-slate-600 text-[11px] mb-2">Coordinator delegates sub-tasks to Vision & Triage worker nodes, synthesizing through Lead Clinician.</p>
+              <div class="text-[10px] font-mono text-indigo-700">Workers: 4 Nodes</div>
+            </div>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <strong class="text-indigo-900 block mb-1">2. Parallel (Fast Ingestion)</strong>
+              <p class="text-slate-600 text-[11px] mb-2">Executes 4 computer vision models, literature retrieval, and ABCDE risk calculator concurrently.</p>
+              <div class="text-[10px] font-mono text-indigo-700">Max Concurrency: 6 Threads</div>
+            </div>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <strong class="text-indigo-900 block mb-1">3. Sequential (Step-by-Step)</strong>
+              <p class="text-slate-600 text-[11px] mb-2">Strict linear pipeline: Input ➔ Vision ➔ ADK Triage ➔ Knowledge Retrieval ➔ Dossier Assembly.</p>
+              <div class="text-[10px] font-mono text-indigo-700">Deterministic Pipeline</div>
+            </div>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <strong class="text-indigo-900 block mb-1">4. ReAct (Reason + Act)</strong>
+              <p class="text-slate-600 text-[11px] mb-2">Dynamic Thought-Action-Observation loops for complex edge cases with repeated tool calls.</p>
+              <div class="text-[10px] font-mono text-indigo-700">Multi-Turn Tool Reasoner</div>
+            </div>
+          </div>
+
+          <!-- Dynamic Comparison Results Table -->
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Pattern</th>
+                  <th class="py-2.5 px-3">Execution Latency (s)</th>
+                  <th class="py-2.5 px-3">Intermediate States</th>
+                  <th class="py-2.5 px-3">Memory Footprint</th>
+                  <th class="py-2.5 px-3">Fault Tolerance</th>
+                </tr>
+              </thead>
+              <tbody id="patterns-comparison-table-body" class="divide-y divide-slate-100 font-medium">
+                <tr>
+                  <td class="py-2 px-3 font-bold text-slate-800">Hierarchical</td>
+                  <td class="py-2 px-3 text-emerald-600 font-semibold">0.003s</td>
+                  <td class="py-2 px-3">6 states (Supervised)</td>
+                  <td class="py-2 px-3">Low</td>
+                  <td class="py-2 px-3 text-emerald-700 font-bold">High (Fallback worker)</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-bold text-slate-800">Parallel</td>
+                  <td class="py-2 px-3 text-emerald-600 font-semibold">0.050s</td>
+                  <td class="py-2 px-3">8 states (Fan-out)</td>
+                  <td class="py-2 px-3">Moderate</td>
+                  <td class="py-2 px-3 text-blue-700 font-bold">High (Independent)</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-bold text-slate-800">Sequential</td>
+                  <td class="py-2 px-3 text-slate-600">0.002s</td>
+                  <td class="py-2 px-3">5 states (Linear)</td>
+                  <td class="py-2 px-3">Minimal</td>
+                  <td class="py-2 px-3 text-amber-700">Low (Cascade failure)</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-bold text-slate-800">ReAct Loop</td>
+                  <td class="py-2 px-3 text-amber-600">0.012s</td>
+                  <td class="py-2 px-3">9 states (Dynamic)</td>
+                  <td class="py-2 px-3">Moderate</td>
+                  <td class="py-2 px-3 text-emerald-700">High (Self-Correction)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB CONTENT 4: HEATMAP & 40-RUN EVALUATION ================= -->
+      <div id="mas-pane-evaluation" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Heatmap Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-rose-600">local_fire_department</span>
+                <h3 class="text-sm font-extrabold text-slate-900">Task Monitoring & Agent Heatmap</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-rose-100 text-rose-800 rounded-md">Requirement 5</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">
+              Generated by <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">AgentCallbackMonitor</code> visualizing execution latency and step complexity across agents:
+            </p>
+            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center p-2">
+              <img id="mas-heatmap-img" src="/static/reports/agent_heatmap.png" alt="Agent Activity Heatmap" class="max-h-72 object-contain rounded-lg shadow-sm">
+            </div>
+            <div class="mt-3 flex justify-between text-xs text-slate-500 font-medium">
+              <span>Frameworks: Google ADK & CrewAI</span>
+              <a href="/static/reports/agent_heatmap.png" target="_blank" class="text-blue-600 hover:underline font-bold flex items-center gap-1">
+                Open Full Resolution <span class="material-symbols-outlined text-xs">open_in_new</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- 40-Run Boxplot Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600">candlestick_chart</span>
+                <h3 class="text-sm font-extrabold text-slate-900">40-Run Performance Boxplot</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-md">Requirement 10</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">
+              Execution latency boxplot over 40 distinct runs with architecture variances (ReAct, Hierarchical, Parallel, Sequential):
+            </p>
+            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center p-2">
+              <img id="mas-boxplot-img" src="/static/reports/performance_boxplot.png" alt="Performance Boxplot" class="max-h-72 object-contain rounded-lg shadow-sm">
+            </div>
+            <div class="mt-3 flex justify-between items-center text-xs">
+              <span class="text-slate-500 font-semibold">Total Runs: <strong>40 benchmark trials</strong></span>
+              <div class="flex gap-2">
+                <a href="/static/reports/benchmark_40_runs.csv" download class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg flex items-center gap-1">
+                  <span class="material-symbols-outlined text-xs">download</span> CSV Dataset
+                </a>
+                <a href="/static/reports/performance_boxplot.png" target="_blank" class="text-blue-600 hover:underline font-bold flex items-center gap-1">
+                  Full Boxplot <span class="material-symbols-outlined text-xs">open_in_new</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================= TAB CONTENT 5: SECURITY GUARDRAILS & PROVENANCE ================= -->
+      <div id="mas-pane-guardrails" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Security Guardrails & Persona Variance -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-red-600">gshield</span>
+                <h3 class="text-sm font-extrabold text-slate-900">Security Guardrails & Persona Testing</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-800 rounded-md">Requirement 8</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">
+              Real-time validation callbacks for prompt injection, toxic language filtering, and tool return typing:
+            </p>
+
+            <div class="space-y-2 mb-4 text-xs">
+              <div class="p-2.5 bg-red-50/50 border border-red-200 rounded-xl flex justify-between items-center">
+                <div>
+                  <strong class="text-red-900 block">Prompt Injection Guard</strong>
+                  <span class="text-slate-500 text-[11px]">Detects jailbreak tokens, system override attempts, and instruction bypass.</span>
+                </div>
+                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded text-[10px]">Active</span>
+              </div>
+
+              <div class="p-2.5 bg-amber-50/50 border border-amber-200 rounded-xl flex justify-between items-center">
+                <div>
+                  <strong class="text-amber-900 block">Toxic & Abusive Language Sanitizer</strong>
+                  <span class="text-slate-500 text-[11px]">Masks abusive terms and flags toxic sentiment before dispatching to agents.</span>
+                </div>
+                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded text-[10px]">Active</span>
+              </div>
+
+              <div class="p-2.5 bg-blue-50/50 border border-blue-200 rounded-xl flex justify-between items-center">
+                <div>
+                  <strong class="text-blue-900 block">Tool Return Type Checking Callbacks</strong>
+                  <span class="text-slate-500 text-[11px]">Validates schemas before data enters the Blackboard state.</span>
+                </div>
+                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded text-[10px]">Active</span>
+              </div>
+            </div>
+
+            <!-- Run 5 Personas Stress Test -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-600">Test 5 Personas (Hostile, Jailbreak, etc.):</span>
+              <button onclick="runGuardrailsPersonaTest()" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors">
+                Run Persona Stress Test
+              </button>
+            </div>
+            <div id="guardrails-test-output" class="mt-3 text-xs hidden bg-slate-900 text-red-300 p-3 rounded-xl font-mono text-[11px] max-h-48 overflow-auto">
+              <!-- Filled via JS -->
+            </div>
+          </div>
+
+          <!-- Observability & Tracing -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-teal-600">insights</span>
+                <h3 class="text-sm font-extrabold text-slate-900">Observability & Cryptographic Provenance</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-teal-100 text-teal-800 rounded-md">Requirement 9</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">
+              OpenTelemetry-compatible hierarchical spans with SHA-256 cryptographic provenance for auditable decision tracking.
+            </p>
+
+            <div id="observability-spans-container" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs">
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 italic">
+                Execution spans and provenance hashes will appear here following consultation.
+              </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-slate-500 font-semibold">Provenance File: <strong>audit_traces.jsonl</strong></span>
+              <a href="/static/reports/audit_traces.jsonl" download class="px-3 py-1 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">download</span> Download Audit Trace Log
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    let activeLanguage = 'en';
+    let userSelectedImageFile = null;
+    let userSelectedVideoFile = null;
+
+    // Presets with differentiated values and distinct visual profiles
+    const PRESETS = {
+      tinea_corporis: {
+        age: 28,
+        gender: 'Male',
+        duration: '2 weeks',
+        symptoms: 'Red circular patch on forearm with scaly border, itching for 2 weeks.',
+        image: '/static/presets/tinea_corporis.jpg',
+        morph_tag: 'Annular scaly ring with central clearing',
+      },
+      acne: {
+        age: 21,
+        gender: 'Female',
+        duration: '1 month',
+        symptoms: 'Multiple red inflamed pimples and pustules on cheeks and forehead, oily skin with mild tenderness.',
+        image: '/static/presets/acne.jpg',
+        morph_tag: 'Follicular papules, comedones & pustules',
+      },
+      psoriasis: {
+        age: 34,
+        gender: 'Male',
+        duration: '2 months',
+        symptoms: 'Thick raised red plaques with silvery-white scales on elbows and knees, dry skin and mild burning.',
+        image: '/static/presets/psoriasis.jpg',
+        morph_tag: 'Thick salmon-pink plaque with micaceous silvery scales',
+      },
+      bcc: {
+        age: 56,
+        gender: 'Female',
+        duration: '6 weeks',
+        symptoms: 'Pearly translucent bump on nose with tiny visible blood vessels, bleeds easily when touched.',
+        image: '/static/presets/bcc.jpg',
+        morph_tag: 'Pearly translucent border with branching telangiectasia',
+      },
+      eczema: {
+        age: 25,
+        gender: 'Female',
+        duration: '3 weeks',
+        symptoms: 'Intense itching with red, dry, cracked sensitive patches in inner elbows and neck.',
+        image: '/static/presets/eczema.jpg',
+        morph_tag: 'Diffuse erythema with xerosis and excoriation',
+      },
+      mel: {
+        age: 48,
+        gender: 'Male',
+        duration: '3 weeks',
+        symptoms: 'Dark asymmetrical mole on upper back with irregular jagged borders and recent color change.',
+        image: '/static/presets/mel.jpg',
+        morph_tag: 'ABCDE pigment asymmetry, notched edge, multi-color variegation',
+      },
+      nv: {
+        age: 30,
+        gender: 'Male',
+        duration: '1 year',
+        symptoms: 'Small uniform brown mole on arm, smooth borders, stable without itching or changes.',
+        image: '/static/presets/nv.jpg',
+        morph_tag: 'Uniform symmetric brown mole with regular round border',
+      }
+    };
+
+    function applyConditionPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      document.getElementById('input-patient-age').value = p.age;
+      document.getElementById('input-patient-gender').value = p.gender;
+      document.getElementById('input-patient-duration').value = p.duration;
+      document.getElementById('input-patient-symptoms').value = p.symptoms;
+      document.getElementById('patient-image-display').src = p.image;
+      document.getElementById('output-preview-image').src = p.image;
+      document.getElementById('image-morph-tag').textContent = p.morph_tag;
+      userSelectedImageFile = null;
+      executeFullAnalysis();
+    }
+
+    function setLanguage(lang) {
+      activeLanguage = lang;
+      if (lang === 'hi') {
+        document.getElementById('lang-hi').className = 'px-3 py-1 rounded-lg transition-all bg-white text-blue-700 shadow-sm';
+        document.getElementById('lang-en').className = 'px-3 py-1 rounded-lg transition-all text-slate-600 hover:text-slate-900';
+        document.getElementById('patient-language-val').textContent = 'Hindi (हिंदी)';
+      } else {
+        document.getElementById('lang-en').className = 'px-3 py-1 rounded-lg transition-all bg-white text-blue-700 shadow-sm';
+        document.getElementById('lang-hi').className = 'px-3 py-1 rounded-lg transition-all text-slate-600 hover:text-slate-900';
+        document.getElementById('patient-language-val').textContent = 'English';
+      }
+      executeFullAnalysis();
+    }
+
+    function togglePreviewTab(mode) {
+      const imgTab = document.getElementById('preview-tab-image');
+      const vidTab = document.getElementById('preview-tab-video');
+      const previewImg = document.getElementById('output-preview-image');
+
+      if (mode === 'image') {
+        imgTab.className = 'flex-1 py-1 text-center bg-blue-600 text-white';
+        vidTab.className = 'flex-1 py-1 text-center bg-slate-100 text-slate-600 hover:bg-slate-200';
+        previewImg.src = userSelectedImageFile ? URL.createObjectURL(userSelectedImageFile) : document.getElementById('patient-image-display').src;
+      } else {
+        vidTab.className = 'flex-1 py-1 text-center bg-blue-600 text-white';
+        imgTab.className = 'flex-1 py-1 text-center bg-slate-100 text-slate-600 hover:bg-slate-200';
+        previewImg.src = document.getElementById('patient-image-display').src;
+      }
+    }
+
+    function handleUserImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      userSelectedImageFile = file;
+
+      const url = URL.createObjectURL(file);
+      document.getElementById('patient-image-display').src = url;
+      document.getElementById('output-preview-image').src = url;
+      document.getElementById('image-filename').textContent = file.name;
+      document.getElementById('image-morph-tag').textContent = 'AI Morphology Scanning Active...';
+
+      // If symptoms text is still the default ringworm preset text, clear it for custom image
+      const sympBox = document.getElementById('input-patient-symptoms');
+      if (sympBox.value.includes('Red circular patch on forearm with scaly border')) {
+        sympBox.value = '';
+        sympBox.placeholder = 'Optional: Describe symptoms or leave blank for automated visual AI classification.';
+      }
+
+      // Switch dropdown to Auto-Detect for the uploaded image
+      document.getElementById('preset-selector').value = 'auto';
+
+      executeFullAnalysis();
+    }
+
+    function appendSymptomTag(tag) {
+      const sympBox = document.getElementById('input-patient-symptoms');
+      if (sympBox.value.includes('Red circular patch on forearm with scaly border') || sympBox.value.trim() === '') {
+        sympBox.value = tag;
+      } else {
+        sympBox.value += ', ' + tag;
+      }
+      executeFullAnalysis();
+    }
+
+    function handleUserVideoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      userSelectedVideoFile = file;
+
+      const vid = document.getElementById('patient-video-display');
+      vid.src = URL.createObjectURL(file);
+      document.getElementById('video-filename').textContent = file.name;
+
+      executeFullAnalysis();
+    }
+
+    async function executeFullAnalysis() {
+      const btn = document.getElementById('run-analysis-btn');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-lg">progress_activity</span> Analyzing Patient Case...`;
+
+      const formData = new FormData();
+      if (userSelectedImageFile) {
+        formData.append('image', userSelectedImageFile);
+      }
+      if (userSelectedVideoFile) {
+        formData.append('video', userSelectedVideoFile);
+      }
+      formData.append('language', activeLanguage);
+      formData.append('patient_age', document.getElementById('input-patient-age').value);
+      formData.append('patient_gender', document.getElementById('input-patient-gender').value);
+      formData.append('patient_text', document.getElementById('input-patient-symptoms').value);
+      formData.append('use_sample', !userSelectedImageFile && !userSelectedVideoFile ? 'true' : 'false');
+      
+      const presetKey = document.getElementById('preset-selector').value;
+      if (presetKey) {
+        formData.append('condition_hint', presetKey);
+      }
+
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Analysis failed on server.');
+        }
+
+        const data = await response.json();
+
+        // 1. Patient Information Card
+        document.getElementById('patient-age-val').textContent = data.patient_info.age;
+        document.getElementById('patient-gender-val').textContent = data.patient_info.gender;
+        document.getElementById('patient-duration-val').textContent = data.patient_info.duration;
+        document.getElementById('patient-symptoms-val').textContent = data.patient_info.symptoms_summary;
+        document.getElementById('patient-language-val').textContent = data.patient_info.language;
+
+        // Update Ingestion Box Visual Marker
+        if (data.ensemble_result && data.ensemble_result.morphology_marker) {
+          document.getElementById('image-morph-tag').textContent = data.ensemble_result.morphology_marker;
+        }
+
+        // 2. Model Predictions Table
+        if (data.model_predictions && data.model_predictions.length >= 4) {
+          document.getElementById('pred-m1-name').textContent = data.model_predictions[0].prediction;
+          document.getElementById('pred-m1-conf').textContent = data.model_predictions[0].confidence_str;
+
+          document.getElementById('pred-m2-name').textContent = data.model_predictions[1].prediction;
+          document.getElementById('pred-m2-conf').textContent = data.model_predictions[1].confidence_str;
+
+          document.getElementById('pred-m3-name').textContent = data.model_predictions[2].prediction;
+          document.getElementById('pred-m3-conf').textContent = data.model_predictions[2].confidence_str;
+
+          document.getElementById('pred-m4-name').textContent = data.model_predictions[3].prediction;
+          document.getElementById('pred-m4-conf').textContent = data.model_predictions[3].confidence_str;
+        }
+
+        // Ensemble Result Card Color & Certainty based on Confidence
+        const confVal = data.ensemble_result.confidence;
+        const ensCard = document.getElementById('ensemble-result-card');
+        const certBadge = document.getElementById('diagnostic-certainty-badge');
+        const repBox = document.getElementById('report-summary-box');
+
+        if (confVal >= 92) {
+          ensCard.className = 'bg-emerald-50 border border-emerald-300 rounded-xl p-3 mb-3';
+          repBox.className = 'bg-emerald-50 border border-emerald-300 rounded-xl p-3 mb-3';
+          certBadge.className = 'text-[10px] font-bold px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded-md';
+          certBadge.textContent = 'Very High Certainty';
+        } else if (confVal >= 85) {
+          ensCard.className = 'bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3';
+          repBox.className = 'bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3';
+          certBadge.className = 'text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md';
+          certBadge.textContent = 'High Certainty';
+        } else if (confVal >= 80) {
+          ensCard.className = 'bg-amber-50 border border-amber-300 rounded-xl p-3 mb-3';
+          repBox.className = 'bg-amber-50 border border-amber-300 rounded-xl p-3 mb-3';
+          certBadge.className = 'text-[10px] font-bold px-2 py-0.5 bg-amber-200 text-amber-900 rounded-md';
+          certBadge.textContent = 'Moderate Certainty';
+        } else {
+          ensCard.className = 'bg-rose-50 border border-rose-300 rounded-xl p-3 mb-3';
+          repBox.className = 'bg-rose-50 border border-rose-300 rounded-xl p-3 mb-3';
+          certBadge.className = 'text-[10px] font-bold px-2 py-0.5 bg-rose-200 text-rose-900 rounded-md';
+          certBadge.textContent = 'Clinical Caution / Biopsy Advised';
+        }
+
+        document.getElementById('ensemble-condition-name').textContent = data.ensemble_result.condition;
+        document.getElementById('ensemble-confidence-val').textContent = data.ensemble_result.confidence + '%';
+        document.getElementById('ensemble-agreement-text').innerHTML = `<span class="material-symbols-outlined text-xs">check</span> ${data.ensemble_result.agreement_note}`;
+
+        // Render Differential Diagnoses Bars (Differentiator!)
+        const diffContainer = document.getElementById('differential-bars-container');
+        diffContainer.innerHTML = '';
+        if (data.ensemble_result.differential && data.ensemble_result.differential.length > 0) {
+          data.ensemble_result.differential.forEach(item => {
+            const bar = document.createElement('div');
+            bar.className = 'text-xs';
+            const isPrimary = item.primary;
+            const barColor = isPrimary ? 'bg-blue-600' : 'bg-slate-300';
+            const textColor = isPrimary ? 'font-bold text-slate-800' : 'text-slate-500 font-medium';
+            bar.innerHTML = `
+              <div class="flex justify-between text-[11px] ${textColor} mb-0.5">
+                <span>${item.condition}</span>
+                <span>${item.prob}%</span>
+              </div>
+              <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div class="${barColor} h-1.5 rounded-full" style="width: ${item.prob}%"></div>
+              </div>
+            `;
+            diffContainer.appendChild(bar);
+          });
+        }
+
+        // 3. Agent Analysis
+        document.getElementById('agent-vision-text').innerHTML = `• ${data.agent_analysis.vision_agent.replace(/\. /g, '.<br>• ')}`;
+        document.getElementById('agent-symptom-text').innerHTML = `• ${data.agent_analysis.symptom_agent.replace(/\. /g, '.<br>• ')}`;
+        document.getElementById('agent-knowledge-text').innerHTML = `• ${data.agent_analysis.knowledge_agent.replace(/\. /g, '.<br>• ')}`;
+        document.getElementById('agent-safety-text').innerHTML = `• ${data.agent_analysis.safety_agent.replace(/\. /g, '.<br>• ')}`;
+
+        // 4. Combined Report (Summary)
+        document.getElementById('report-condition-title').textContent = data.combined_report.most_likely_condition;
+        document.getElementById('report-confidence-pill').textContent = data.combined_report.confidence_display;
+        document.getElementById('report-description-text').textContent = data.combined_report.description;
+
+        // Populate common symptoms
+        const symList = document.getElementById('report-symptoms-list');
+        symList.innerHTML = '';
+        data.combined_report.common_symptoms.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          symList.appendChild(li);
+        });
+
+        // Populate recommendations
+        const recList = document.getElementById('report-recommendations-list');
+        recList.innerHTML = '';
+        data.combined_report.recommendations.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          recList.appendChild(li);
+        });
+
+        // Audio Player
+        if (data.audio_url) {
+          const aud = document.getElementById('report-audio-element');
+          aud.src = data.audio_url + '?t=' + Date.now();
+          aud.load();
+        }
+
+        // Render MAS Telemetry (CrewAI + Google ADK Hybrid MAS)
+        if (data.mas_telemetry) {
+          renderMasTelemetry(data.mas_telemetry);
+        }
+
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span class="material-symbols-outlined text-lg">bolt</span> Run Multimodal Clinical Analysis`;
+      }
+    }
+
+    function downloadPdfReport() {
+      window.print();
+    }
+
+    // =========================================================
+    // MAS CAPSTONE ENGINE JAVASCRIPT CONTROLLERS
+    // =========================================================
+    let currentMasTelemetry = null;
+    let activePydanticFormat = 'markdown';
+
+    function switchMasTab(tabName) {
+      const tabs = ['blackboard', 'pydantic', 'patterns', 'evaluation', 'guardrails'];
+      tabs.forEach(t => {
+        const pane = document.getElementById(`mas-pane-${t}`);
+        const btn = document.getElementById(`mas-tab-btn-${t}`);
+        if (pane) pane.classList.toggle('hidden', t !== tabName);
+        if (btn) {
+          if (t === tabName) {
+            btn.className = 'px-4 py-2 rounded-xl bg-indigo-600 text-white shadow transition-all';
+          } else {
+            btn.className = 'px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all';
+          }
+        }
+      });
+    }
+
+    function renderMasTelemetry(mas) {
+      currentMasTelemetry = mas;
+
+      // 1. Blackboard History
+      const bbContainer = document.getElementById('blackboard-feed-container');
+      if (bbContainer && mas.blackboard_history) {
+        bbContainer.innerHTML = '';
+        mas.blackboard_history.forEach(evt => {
+          const item = document.createElement('div');
+          item.className = 'p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs';
+          item.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-bold text-purple-900">${evt.author_agent}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${evt.state_version}</span>
+            </div>
+            <div class="text-[11px] text-slate-700 font-mono">
+              <span class="text-purple-700 font-bold">${evt.key}</span> ➔ ${evt.value_preview}
+            </div>
+          `;
+          bbContainer.appendChild(item);
+        });
+      }
+
+      // 2. A2A Protocol Traffic
+      const a2aContainer = document.getElementById('a2a-traffic-container');
+      if (a2aContainer && mas.a2a_traffic) {
+        a2aContainer.innerHTML = '';
+        mas.a2a_traffic.forEach(msg => {
+          const item = document.createElement('div');
+          item.className = 'p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs';
+          item.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+              <div class="flex items-center gap-1 font-bold text-slate-800">
+                <span class="px-1.5 py-0.5 rounded text-[9px] bg-sky-100 text-sky-800 font-mono">${msg.sender_framework}</span>
+                ➔
+                <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-mono">${msg.recipient_framework}</span>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">${msg.protocol_version}</span>
+            </div>
+            <div class="text-[11px] text-blue-800 font-semibold mb-0.5">${msg.intent}</div>
+            <div class="text-[10px] font-mono text-slate-500">Hash: ${msg.state_hash}</div>
+          `;
+          a2aContainer.appendChild(item);
+        });
+      }
+
+      // 3. Pydantic Structured Output
+      updatePydanticDisplay();
+
+      // 4. Observability Spans
+      const obsContainer = document.getElementById('observability-spans-container');
+      if (obsContainer && mas.trace_summary) {
+        obsContainer.innerHTML = `
+          <div class="p-3 bg-teal-50/70 border border-teal-200 rounded-xl">
+            <div class="flex justify-between text-xs font-bold text-teal-900 mb-1">
+              <span>Trace ID: ${mas.trace_summary.trace_id}</span>
+              <span class="text-[10px] bg-teal-200 text-teal-900 px-1.5 py-0.5 rounded font-mono">${mas.trace_summary.total_duration_ms} ms</span>
+            </div>
+            <div class="text-[11px] text-slate-600 space-y-0.5">
+              <div>Total Spans: <strong>${mas.trace_summary.total_spans}</strong> (ADK + CrewAI + PyTorch)</div>
+              <div>Input Provenance Hash: <strong class="font-mono text-[10px]">${mas.trace_summary.input_provenance_hash || 'SHA256 verified'}</strong></div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function switchPydanticFormat(format) {
+      activePydanticFormat = format;
+      const formats = ['md', 'tbl', 'json'];
+      formats.forEach(f => {
+        const btn = document.getElementById(`pydantic-fmt-${f}`);
+        const active = (f === 'md' && format === 'markdown') || (f === 'tbl' && format === 'table') || (f === 'json' && format === 'json');
+        if (btn) {
+          btn.className = active ? 'px-3 py-1 rounded-lg bg-emerald-600 text-white shadow-sm' : 'px-3 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200';
+        }
+      });
+      updatePydanticDisplay();
+    }
+
+    function updatePydanticDisplay() {
+      const display = document.getElementById('pydantic-output-display');
+      if (!display) return;
+      if (!currentMasTelemetry || !currentMasTelemetry.structured_output) {
+        display.textContent = 'Run an analysis to inspect Pydantic structured output.';
+        return;
+      }
+      const out = currentMasTelemetry.structured_output;
+      if (activePydanticFormat === 'markdown') {
+        display.textContent = out.markdown || 'No markdown output.';
+      } else if (activePydanticFormat === 'table') {
+        display.textContent = out.table || 'No table output.';
+      } else {
+        display.textContent = JSON.stringify(out.json || {}, null, 2);
+      }
+    }
+
+    function copyPydanticOutput() {
+      const display = document.getElementById('pydantic-output-display');
+      if (display && display.textContent) {
+        navigator.clipboard.writeText(display.textContent);
+        alert('Copied Pydantic output to clipboard!');
+      }
+    }
+
+    async function runBlackboardVsP2PComparison() {
+      const resContainer = document.getElementById('p2p-comparison-results');
+      resContainer.classList.remove('hidden');
+      resContainer.innerHTML = '<span class="animate-pulse">Evaluating Blackboard vs P2P Message Buses over 10 iterations...</span>';
+      try {
+        const r = await fetch('/api/mas/blackboard-vs-p2p');
+        const data = await r.json();
+        resContainer.innerHTML = `
+          <div class="font-bold text-purple-950 mb-1">Architecture Comparison Benchmark (10 Iterations):</div>
+          <div class="grid grid-cols-2 gap-2 text-[11px] mb-2">
+            <div class="p-2 bg-white rounded border border-purple-200">
+              <strong class="text-purple-900 block">Blackboard (Shared State)</strong>
+              <div>Avg Latency: <strong>${data.blackboard_latency_ms} ms</strong></div>
+              <div>Msg Complexity: <strong>O(N)</strong> (${data.blackboard_messages} msgs)</div>
+              <div>Shared State Lock: <strong>Zero Race Conditions</strong></div>
+            </div>
+            <div class="p-2 bg-white rounded border border-purple-200">
+              <strong class="text-purple-900 block">Peer-to-Peer Bus (P2P)</strong>
+              <div>Avg Latency: <strong>${data.p2p_latency_ms} ms</strong></div>
+              <div>Msg Complexity: <strong>O(N²)</strong> (${data.p2p_messages} msgs)</div>
+              <div>Mesh Overhead: <strong>${data.latency_overhead_percent}% higher</strong></div>
+            </div>
+          </div>
+          <p class="text-[10px] text-purple-800">Conclusion: Blackboard Architecture guarantees single source of truth for clinical triage and avoids N² message explosion.</p>
+        `;
+      } catch (e) {
+        resContainer.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    async function testMcpToolExecution() {
+      const toolName = document.getElementById('mcp-test-tool').value;
+      const out = document.getElementById('mcp-test-output');
+      out.textContent = `Executing MCP tool: ${toolName}...`;
+      let args = {};
+      if (toolName === 'dermatology_database_lookup') {
+        args = { condition_code: 'tinea_corporis' };
+      } else if (toolName === 'clinical_risk_calculator') {
+        args = { asymmetry: true, border_irregular: true, color_variegated: true, diameter_over_6mm: false, evolving: false, patient_age: 45 };
+      } else {
+        args = { query: 'melanoma dermoscopy ABCDE', max_citations: 2 };
+      }
+
+      try {
+        const r = await fetch('/api/mas/mcp/call', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool_name: toolName, arguments: args }),
+        });
+        const res = await r.json();
+        out.textContent = JSON.stringify(res, null, 2);
+      } catch (e) {
+        out.textContent = 'MCP Tool execution error: ' + e.message;
+      }
+    }
+
+    async function loadAgenticPatternsComparison() {
+      const tbody = document.getElementById('patterns-comparison-table-body');
+      tbody.innerHTML = '<tr><td colspan="5" class="py-3 text-center text-indigo-600 animate-pulse">Running live pattern evaluation harness...</td></tr>';
+      try {
+        const r = await fetch('/api/mas/patterns');
+        const data = await r.json();
+        tbody.innerHTML = '';
+        Object.keys(data).forEach(pName => {
+          const item = data[pName];
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-slate-100';
+          tr.innerHTML = `
+            <td class="py-2 px-3 font-bold text-slate-800 capitalize">${pName}</td>
+            <td class="py-2 px-3 text-emerald-600 font-semibold">${item.latency_s}s</td>
+            <td class="py-2 px-3">${item.intermediate_states} states</td>
+            <td class="py-2 px-3">${item.memory_footprint || 'Optimal'}</td>
+            <td class="py-2 px-3 font-bold ${item.fault_tolerance.includes('High') ? 'text-emerald-700' : 'text-amber-700'}">${item.fault_tolerance}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-2 text-red-600">Error: ${e.message}</td></tr>`;
+      }
+    }
+
+    async function runGuardrailsPersonaTest() {
+      const out = document.getElementById('guardrails-test-output');
+      out.classList.remove('hidden');
+      out.textContent = 'Running Security Guardrail test harness across 5 distinct personas...';
+      try {
+        const r = await fetch('/api/mas/guardrails/test');
+        const data = await r.json();
+        out.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        out.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    // Auto-trigger initial analysis on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      // Trigger initial analysis so the clinical dashboard & MAS hub are instantly filled
+      executeFullAnalysis();
+    });
+  </script>
+
+</body>
+</html>

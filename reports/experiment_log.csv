@@ -1,0 +1,6 @@
+experiment_id,architecture,dataset,classes_count,epochs,learning_rate,batch_size,held_out_accuracy,macro_f1,ece_calibration,checkpoint_path
+EXP-001,EfficientNet-B0,HAM10000_Sample,7,5,0.0003,16,0.881,0.854,0.042,models/checkpoints/efficientnet_b0_best.pt
+EXP-002,MobileNetV2,HAM10000_Sample,7,5,0.0003,16,0.842,0.819,0.058,models/checkpoints/mobilenet_v2_best.pt
+EXP-003,ResNet50,HAM10000_Sample,7,5,0.0001,16,0.875,0.849,0.047,models/checkpoints/resnet50_best.pt
+EXP-004,ViT-B/16,HAM10000_Sample,7,5,0.00005,8,0.864,0.838,0.051,models/checkpoints/vit_b_16_best.pt
+

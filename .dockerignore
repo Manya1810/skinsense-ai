@@ -1,0 +1,17 @@
+# Git & Deployment Ignores
+__pycache__/
+*.py[cod]
+*$py.class
+*.pt
+*.pth
+!models/checkpoints/efficientnet_b0_best.pt
+!models/checkpoints/mobilenet_v2_best.pt
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+static/audio/doctor_*.mp3
+static/frames/frame_*.jpg
+.DS_Store
+Thumbs.db

@@ -1,0 +1,190 @@
+{
+  "classes": {
+    "tinea_corporis": {
+      "full_name": "Tinea Corporis (Ringworm)",
+      "icd_11": "ICD-11: 1F28.0 (Dermatophytosis of body)",
+      "category": "Superficial Fungal Infection (Dermatophytosis)",
+      "risk_level": "Low",
+      "urgency": "Routine outpatient care",
+      "description": "Tinea corporis is a superficial fungal infection of the skin caused by dermatophytes, producing circular, annular, erythematous scaly plaques with raised borders.",
+      "clinical_presentation": "Red, circular patch with active scaly or vesicular borders and characteristic central clearing. Commonly pruritic (itchy).",
+      "common_symptoms": [
+        "Red, circular patch",
+        "Raised scaly border",
+        "Itching (pruritus)",
+        "May spread to nearby areas or close contacts"
+      ],
+      "pathogen": "Dermatophytes (Trichophyton rubrum, Microsporum, Epidermophyton)",
+      "guideline_recommendations": [
+        "Keep the affected area clean and thoroughly dry.",
+        "Use topical antifungal cream (e.g., clotrimazole, terbinafine) as advised by a doctor.",
+        "Avoid sharing personal towels, bedding, or clothing.",
+        "Consult a doctor or dermatologist for a proper prescription if it spreads or fails to resolve."
+      ],
+      "differential_diagnosis": ["Nummular Eczema", "Psoriasis", "Pityriasis Rosea", "Granuloma Annulare"],
+      "citations": [
+        {"source": "AAD (American Academy of Dermatology)", "title": "Ringworm (Tinea Corporis): Diagnosis and Treatment", "year": "2023", "url": "https://www.aad.org/public/diseases/a-z/ringworm-treatment"},
+        {"source": "BAD (British Association of Dermatologists)", "title": "Tinea Corporis Patient Information Leaflet", "year": "2022", "url": "https://www.bad.org.uk"},
+        {"source": "CDC", "title": "Fungal Diseases: Ringworm Guidelines", "year": "2024", "url": "https://www.cdc.gov/fungal/diseases/ringworm/"}
+      ],
+      "patient_friendly_summary_en": "Tinea corporis is a common fungal skin infection (ringworm). It forms a red, circular patch with a scaly border and is typically treated effectively with topical antifungal creams.",
+      "patient_friendly_summary_hi": "यह टीनिया कॉर्पोरिस (दाद/रिंगवर्म) है, जो फंगल इन्फेक्शन के कारण होता है। इसमें त्वचा पर लाल, गोल और खुजलीदार चकत्ते बनते हैं जो एंटीफंगल क्रीम से ठीक हो जाते हैं।"
+    },
+    "eczema": {
+      "full_name": "Atopic Dermatitis (Eczema)",
+      "icd_11": "ICD-11: EA80 (Atopic eczema)",
+      "category": "Inflammatory Dermatosis",
+      "risk_level": "Low to Moderate",
+      "urgency": "Routine primary care review",
+      "description": "A chronic inflammatory skin condition characterized by dry, pruritic, and erythematous patches often in skin flexures.",
+      "clinical_presentation": "Ill-defined erythematous patches, excoriations, lichenification, and intense pruritus.",
+      "common_symptoms": ["Intense itching", "Dry scaly patches", "Redness and swelling", "Sensitive skin prone to irritation"],
+      "guideline_recommendations": [
+        "Frequent liberal application of fragrance-free emollients/moisturizers.",
+        "Short, lukewarm showers using soap-free cleansers.",
+        "Topical corticosteroids or calcineurin inhibitors as prescribed by a physician.",
+        "Avoid known contact allergens and scratch trauma."
+      ],
+      "differential_diagnosis": ["Contact Dermatitis", "Psoriasis", "Scabies", "Tinea"],
+      "citations": [
+        {"source": "AAD", "title": "Atopic Dermatitis Clinical Management Guidelines", "year": "2023", "url": "https://www.aad.org"},
+        {"source": "BAD", "title": "Guidelines for the management of atopic eczema", "year": "2022", "url": "https://www.bad.org.uk"}
+      ],
+      "patient_friendly_summary_en": "Atopic dermatitis (eczema) is an itchy, inflammatory skin condition manageable with regular moisturizing and gentle skin care.",
+      "patient_friendly_summary_hi": "यह एक्जिमा (Atopic Dermatitis) है जिसमें त्वचा पर सूखापन, लाली और तेज खुजली होती है। मॉइस्चराइजर और डॉक्टर की सलाह से यह नियंत्रित रहता है।"
+    },
+    "psoriasis": {
+      "full_name": "Plaque Psoriasis",
+      "icd_11": "ICD-11: EA90 (Psoriasis vulgaris)",
+      "category": "Autoimmune / Chronic Inflammatory Dermatosis",
+      "risk_level": "Moderate",
+      "urgency": "Routine dermatologist consultation",
+      "description": "An immune-mediated chronic inflammatory skin disease characterized by sharply demarcated erythematous plaques with thick silvery-white scales.",
+      "clinical_presentation": "Well-demarcated salmon-pink plaques with overlying silvery mica-like scales, commonly on extensor surfaces (elbows, knees, scalp).",
+      "common_symptoms": ["Thick silvery scales", "Red, raised plaques", "Dry, cracked skin that may bleed", "Itching or burning sensation"],
+      "guideline_recommendations": [
+        "Regular application of keratolytics and rich emollients.",
+        "Topical vitamin D analogues and potent topical corticosteroids under clinical guidance.",
+        "Systemic or biologic therapies for moderate-to-severe disease.",
+        "Avoid skin trauma (Koebner phenomenon)."
+      ],
+      "differential_diagnosis": ["Seborrheic Dermatitis", "Lichen Planus", "Tinea Corporis", "Eczema"],
+      "citations": [
+        {"source": "AAD-NPF", "title": "Joint AAD-NPF guidelines of care for the management of psoriasis", "year": "2021", "url": "https://www.aad.org"},
+        {"source": "BAD", "title": "Psoriasis guidelines of care", "year": "2023", "url": "https://www.bad.org.uk"}
+      ],
+      "patient_friendly_summary_en": "Psoriasis is a chronic condition causing red plaques covered with silvery scales. It is not contagious and responds well to targeted medical treatment.",
+      "patient_friendly_summary_hi": "यह सोरायसिस है, जो त्वचा की कोशिकाओं के तेजी से बनने के कारण मोटी चांदी जैसी पपड़ी बनाता है। यह छूने से नहीं फैलता।"
+    },
+    "acne": {
+      "full_name": "Acne Vulgaris",
+      "icd_11": "ICD-11: ED80 (Acne vulgaris)",
+      "category": "Pilosebaceous Inflammatory Disorder",
+      "risk_level": "Low",
+      "urgency": "Routine primary or cosmetic dermatology care",
+      "description": "A chronic inflammatory disorder of the pilosebaceous unit presenting with comedones, papules, pustules, nodules, and potential scarring.",
+      "clinical_presentation": "Open and closed comedones, inflamed red papules, pustules, and sebaceous oiliness on the face, chest, or back.",
+      "common_symptoms": ["Blackheads and whiteheads", "Painful inflamed pimples or cysts", "Oily facial skin", "Tendency to post-inflammatory hyperpigmentation"],
+      "guideline_recommendations": [
+        "Gentle twice-daily cleansing with a non-comedogenic foaming cleanser.",
+        "Topical retinoids, benzoyl peroxide, or topical antibiotics.",
+        "Avoid squeezing or picking lesions to minimize hyperpigmentation and scarring.",
+        "Daily broad-spectrum non-comedogenic sunscreen."
+      ],
+      "differential_diagnosis": ["Rosacea", "Folliculitis", "Perioral Dermatitis", "Demodex folliculitis"],
+      "citations": [
+        {"source": "AAD", "title": "Guidelines of care for the management of acne vulgaris", "year": "2024", "url": "https://www.aad.org"}
+      ],
+      "patient_friendly_summary_en": "Acne vulgaris is a common skin condition involving blocked oil glands and pores. Good skincare and doctor-prescribed topicals keep it under control.",
+      "patient_friendly_summary_hi": "यह मुंहासे (Acne) हैं जो त्वचा के रोमछिद्रों में तेल और बैक्टीरिया जमा होने से होते हैं। सही फेस वॉश और दवा से यह साफ हो जाते हैं।"
+    },
+    "mel": {
+      "full_name": "Melanoma",
+      "icd_11": "ICD-11: 2C30 (Malignant melanoma of skin)",
+      "category": "Malignant Neoplasm (Melanocytic)",
+      "risk_level": "Critical",
+      "urgency": "Urgent Dermatologist Review (2-week wait / Immediate Referral)",
+      "description": "A high-risk skin cancer arising from melanocytes, requiring immediate clinical evaluation, dermoscopic biopsy, and surgical excision.",
+      "clinical_presentation": "Asymmetric pigmented lesion with irregular borders, color variegation (black, brown, blue, red), diameter >6mm, and dynamic evolution.",
+      "common_symptoms": ["Asymmetrical mole", "Irregular notched borders", "Color changes", "Bleeding, itching, or rapid expansion"],
+      "guideline_recommendations": [
+        "Immediate full-thickness excisional biopsy with histological margin evaluation.",
+        "Avoid shave or partial biopsy.",
+        "Prompt referral to a dermatologic oncologist or specialist surgeon."
+      ],
+      "differential_diagnosis": ["Dysplastic Nevus", "Pigmented Basal Cell Carcinoma", "Seborrheic Keratosis", "Dermatofibroma"],
+      "citations": [
+        {"source": "AAD", "title": "Melanoma Clinical Guidelines", "year": "2023", "url": "https://www.aad.org"},
+        {"source": "ISIC Archive", "title": "International Skin Imaging Collaboration Melanoma Benchmark", "year": "2024", "url": "https://www.isic-archive.com"}
+      ],
+      "patient_friendly_summary_en": "This lesion displays characteristics that require prompt, urgent evaluation by a dermatologist to ensure patient safety.",
+      "patient_friendly_summary_hi": "यह मेलेनोमा के लक्षणों से मेल खाता है। कृपया तुरंत किसी त्वचा विशेषज्ञ से व्यक्तिगत जांच करवाएं।"
+    },
+    "bcc": {
+      "full_name": "Basal Cell Carcinoma",
+      "icd_11": "ICD-11: 2C32 (Basal cell carcinoma of skin)",
+      "category": "Malignant Neoplasm (Non-Melanoma)",
+      "risk_level": "High",
+      "urgency": "Dermatologist review within 2 to 4 weeks",
+      "description": "The most common non-melanoma skin cancer originating from epidermal basal cells. Locally invasive but rarely metastasizes.",
+      "clinical_presentation": "Pearly or translucent papule with telangiectasia, rolled border, central depression or ulceration.",
+      "common_symptoms": ["Pearly translucent bump", "Non-healing sore that bleeds easily", "Rolled border", "Visible small blood vessels"],
+      "guideline_recommendations": [
+        "Histological confirmation via punch or shave biopsy.",
+        "Surgical excision or Mohs micrographic surgery for high-risk facial zones.",
+        "Routine sun protection."
+      ],
+      "differential_diagnosis": ["Squamous Cell Carcinoma", "Melanocytic Nevus", "Sebaceous Hyperplasia"],
+      "citations": [
+        {"source": "AAD", "title": "Basal Cell Carcinoma Guidelines", "year": "2023", "url": "https://www.aad.org"}
+      ],
+      "patient_friendly_summary_en": "Basal cell carcinoma is a slow-growing skin cancer that should be checked and treated by a dermatologist to prevent local growth.",
+      "patient_friendly_summary_hi": "यह बेसल सेल कार्सिनोमा है, जो धीरे-धीरे बढ़ता है और डॉक्टर द्वारा छोटी सी सर्जरी से पूरी तरह ठीक हो जाता है।"
+    },
+    "nv": {
+      "full_name": "Melanocytic Nevus (Common Mole)",
+      "icd_11": "ICD-11: 2F20 (Benign melanocytic neoplasm)",
+      "category": "Benign Melanocytic Proliferation",
+      "risk_level": "Low",
+      "urgency": "Routine surveillance / Self-monitoring",
+      "description": "A completely benign proliferation of melanocytes commonly known as a mole. Harmless in the overwhelming majority of cases.",
+      "clinical_presentation": "Symmetric, uniformly pigmented tan or brown macule or papule with smooth, regular borders.",
+      "common_symptoms": ["Uniform brown or tan color", "Sharp distinct edges", "Diameter under 6mm", "Stable without rapid changes"],
+      "guideline_recommendations": [
+        "Routine periodic self-checks using ABCDE rules.",
+        "No surgical treatment necessary unless symptomatic, changing, or irritated.",
+        "Apply daily broad-spectrum sun protection."
+      ],
+      "differential_diagnosis": ["Dysplastic Nevus", "Melanoma", "Seborrheic Keratosis"],
+      "citations": [
+        {"source": "WHO", "title": "Classification of Skin Tumours: Melanocytic Lesions", "year": "2023", "url": "https://www.who.int"}
+      ],
+      "patient_friendly_summary_en": "This is a benign, common mole (melanocytic nevus). Routine self-checks are recommended, with no urgent action required.",
+      "patient_friendly_summary_hi": "यह एक सामान्य और हानिरहित तिल (Nevus) है। इसमें चिंता की कोई बात नहीं है।"
+    },
+    "bkl": {
+      "full_name": "Benign Keratosis-like Lesion",
+      "icd_11": "ICD-11: EK70 (Seborrhoeic keratosis)",
+      "category": "Benign Epithelial Growth",
+      "risk_level": "Low",
+      "urgency": "Routine confirmation",
+      "description": "A benign skin growth including seborrheic keratoses and solar lentigines, appearing waxy and 'stuck-on'.",
+      "clinical_presentation": "Well-demarcated tan, brown, or black plaque with a greasy or verrucous surface.",
+      "common_symptoms": ["Waxy or stuck-on appearance", "Rough or crumbly surface", "Round or oval shape", "Slow growth over years"],
+      "guideline_recommendations": ["Reassurance; no treatment required unless irritated by clothing or friction."],
+      "differential_diagnosis": ["Melanoma", "Pigmented BCC", "Common Mole"],
+      "citations": [
+        {"source": "AAD", "title": "Seborrheic Keratoses Overview", "year": "2023", "url": "https://www.aad.org"}
+      ],
+      "patient_friendly_summary_en": "This is a harmless, non-cancerous benign keratosis. It does not spread and requires no treatment unless bothersome.",
+      "patient_friendly_summary_hi": "यह एक हानिरहित मस्सा या तिल जैसा उभार (Benign Keratosis) है, जो बिल्कुल सुरक्षित होता है।"
+    }
+  },
+  "triage_red_flags": [
+    "Rapid ulceration, oozing, or persistent bleeding without trauma",
+    "Spreading erythema (redness), swelling, or severe tenderness",
+    "Fever, chills, night sweats, or swollen regional lymph nodes",
+    "Lesion evolving visibly in shape, color, or size within weeks",
+    "Severe systemic itching, numbness, or shooting pain"
+  ]
+}
