@@ -26,25 +26,54 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from agents.callbacks_and_monitoring import generate_agent_heatmap
+from agents.agentic_patterns import HierarchicalPatternRunner, ParallelPatternRunner, SequentialPatternRunner
+from agents.callbacks_and_monitoring import AgentCallbackMonitor, generate_agent_heatmap
 from agents.crewai_adk_mas import SkinSenseHybridMAS
-from agents.guardrails import PersonaVarianceHarness
+from agents.guardrails import PersonaVarianceHarness, SecurityGuardrails
 
 
 def run_40_runs_benchmark() -> pd.DataFrame:
-    """Executes 40 benchmark runs with architecture and persona variances."""
+    """Executes 40 benchmark runs with real architecture and persona variances."""
     print("=" * 65)
     print("Starting SkinSense AI 40-Run Comprehensive Benchmark Suite...")
     print("=" * 65)
 
     mas = SkinSenseHybridMAS()
+    guard = SecurityGuardrails()
+    agg_monitor = AgentCallbackMonitor()
+
+    def _vis_worker(img, text, hint):
+        # Run real OpenCV morphology without short-circuiting via condition_hint
+        return mas.vision_agent.analyze_image(img or "", patient_text="", condition_hint=None)
+
+    def _sym_kb_worker(text):
+        guard.validate_prompt(text)
+        sym_out = mas.symptom_agent.structure_symptoms(text)
+        for code in ("tinea_corporis", "psoriasis", "eczema", "acne", "mel", "bcc", "nv"):
+            mas.mcp_registry.call_tool("dermatology_database_lookup", {"condition_code": code})
+            mas.mcp_registry.call_tool("medical_literature_search", {"query": code, "max_citations": 2})
+        mas.mcp_registry.call_tool("clinical_risk_calculator", {"asymmetry": False, "border_irregular": False, "patient_age": 35})
+        return sym_out
+
+    def _saf_worker(sym, vis):
+        from agents.safety_agent import SafetyAgent
+        return SafetyAgent().evaluate_safety_and_triage(sym, vis)
+
+    hier_runner = HierarchicalPatternRunner(_vis_worker, _sym_kb_worker, _saf_worker)
+    par_runner = ParallelPatternRunner(_vis_worker, _sym_kb_worker, _saf_worker)
+    seq_runner = SequentialPatternRunner(_vis_worker, _sym_kb_worker, _saf_worker)
+
     architectures = ["Hierarchical", "Parallel", "Sequential", "ReAct"]
     personas_list = list(PersonaVarianceHarness.PERSONAS.items())
     conditions_list = ["tinea_corporis", "acne", "psoriasis", "bcc", "eczema", "mel", "nv", "tinea_corporis"]
 
     runs_data: List[Dict[str, Any]] = []
-    base_img = Path("static/presets/tinea_corporis.jpg")
-    img_path = str(base_img) if base_img.exists() else None
+    presets_dir = BASE_DIR / "static" / "presets"
+
+    # Warm up parallel pool once
+    default_img = str(presets_dir / "tinea_corporis.jpg") if (presets_dir / "tinea_corporis.jpg").exists() else None
+    if default_img:
+        par_runner.execute(default_img, "Warmup", None)
 
     total_runs = 40
     for run_idx in range(1, total_runs + 1):
@@ -52,13 +81,30 @@ def run_40_runs_benchmark() -> pd.DataFrame:
         persona_key, persona_data = personas_list[(run_idx - 1) % len(personas_list)]
         cond_code = conditions_list[(run_idx - 1) % len(conditions_list)]
 
-        # Specific prompt variance
+        cond_img = presets_dir / f"{cond_code}.jpg"
+        img_path = str(cond_img) if cond_img.exists() else default_img
+
         prompt_text = persona_data["prompt_sample"]
         is_adversarial = persona_data["is_adversarial"]
 
         start_time = time.perf_counter()
-        
-        # Execute consultation
+
+        # Execute pattern runner so latency distribution reflects the real architecture
+        if arch == "Hierarchical":
+            hier_runner.execute(img_path or "", prompt_text, None)
+        elif arch == "Parallel":
+            par_runner.execute(img_path or "", prompt_text, None)
+        elif arch == "Sequential":
+            seq_runner.execute(img_path or "", prompt_text, None)
+        else:
+            # ReAct multi-turn Thought-Action-Observation pass
+            s1 = _sym_kb_worker(prompt_text)
+            v1 = _vis_worker(img_path, prompt_text, None)
+            _saf_worker(s1, v1)
+            s2 = _sym_kb_worker("Re-verify morphology and duration")
+            _saf_worker(s2, v1)
+
+        # Full hybrid MAS consultation for provenance, dossier & callback timings
         result = mas.run_consultation(
             image_path=img_path,
             patient_text=prompt_text,
@@ -66,18 +112,17 @@ def run_40_runs_benchmark() -> pd.DataFrame:
             pattern=arch.lower(),
             messaging="blackboard",
         )
-        
         elapsed_sec = time.perf_counter() - start_time
-        # ReAct architecture has slight reasoning loop overhead simulation
-        if arch == "ReAct":
-            elapsed_sec += random.uniform(0.04, 0.08)
-        elif arch == "Parallel":
-            elapsed_sec = max(elapsed_sec * 0.72, 0.05)
+
+        # Aggregate real callback timings across all 40 runs
+        run_monitor = result.get("monitor")
+        if run_monitor:
+            for agent_name, times in run_monitor._agent_timings.items():
+                agg_monitor._agent_timings.setdefault(agent_name, []).extend(times)
 
         # Token & cost estimates
         input_tokens = len(prompt_text.split()) * 4 + 220
         output_tokens = len(result["markdown_report"].split()) * 2
-        # Cost estimate: $0.0005 per 1k input tokens, $0.0015 per 1k output tokens
         estimated_cost_usd = round((input_tokens / 1000.0 * 0.0005) + (output_tokens / 1000.0 * 0.0015), 6)
 
         dossier = result["dossier"]
@@ -103,21 +148,21 @@ def run_40_runs_benchmark() -> pd.DataFrame:
         print(f"[{run_idx:02d}/{total_runs}] {record['run_id']} | {arch:12s} | {persona_data['name'][:22]:22s} | Latency: {record['latency_seconds']:.3f}s | Cost: ${estimated_cost_usd:.5f}")
 
     df = pd.DataFrame(runs_data)
-    
-    # 1. Save dataset
-    csv_path = Path("reports/benchmark_40_runs.csv")
-    csv_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(csv_path, index=False)
-    print(f"\n[OK] Benchmark Dataset saved: {csv_path.resolve()} ({len(df)} records)")
+
+    # 1. Save dataset to both reports/ and static/reports/
+    for csv_target in [BASE_DIR / "reports" / "benchmark_40_runs.csv", BASE_DIR / "static" / "reports" / "benchmark_40_runs.csv"]:
+        csv_target.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(csv_target, index=False)
+        print(f"[OK] Benchmark Dataset saved: {csv_target.resolve()} ({len(df)} records)")
 
     # 2. Generate Boxplot Visualization
-    generate_performance_boxplot(df, output_path="static/reports/performance_boxplot.png")
+    generate_performance_boxplot(df, output_path=str(BASE_DIR / "static" / "reports" / "performance_boxplot.png"))
 
-    # 3. Generate Agent Heatmap
-    generate_agent_heatmap(output_path="static/reports/agent_heatmap.png")
+    # 3. Generate Agent Heatmap from aggregated real timings
+    generate_agent_heatmap(monitor=agg_monitor, output_path=str(BASE_DIR / "static" / "reports" / "agent_heatmap.png"))
 
     # 4. Generate Benchmark Markdown Summary Report
-    generate_summary_markdown(df, output_path="reports/BENCHMARK_REPORT.md")
+    generate_summary_markdown(df, output_path=str(BASE_DIR / "reports" / "BENCHMARK_REPORT.md"))
 
     return df
 

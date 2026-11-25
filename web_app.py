@@ -25,6 +25,7 @@ from voice_of_the_patient import transcribe_patient_voice
 from agents.crewai_adk_mas import SkinSenseHybridMAS
 from agents.agentic_patterns import evaluate_all_patterns
 from agents.blackboard import evaluate_messaging_architectures
+from agents.callbacks_and_monitoring import generate_agent_heatmap
 from agents.guardrails import PersonaVarianceHarness, SecurityGuardrails
 from agents.mcp_tools import MCPToolRegistry
 
@@ -229,6 +230,12 @@ async def analyze_case(
                 condition_hint=condition_hint,
                 original_filename=original_filename,
             )
+            # Regenerate live heatmap from this run's actual callback timings
+            heatmap_file = STATIC_DIR / "reports" / "agent_heatmap.png"
+            if mas_run.get("monitor"):
+                generate_agent_heatmap(monitor=mas_run["monitor"], output_path=str(heatmap_file))
+
+            cache_ts = int(time.time() * 1000)
             mas_telemetry = {
                 "case_id": mas_run["case_id"],
                 "blackboard_history": mas_run["blackboard_history"][:10],
@@ -244,8 +251,8 @@ async def analyze_case(
                 },
                 "guardrail_status": mas_run["dossier"].safety_assessment.model_dump(),
                 "reports": {
-                    "heatmap_url": "/static/reports/agent_heatmap.png",
-                    "boxplot_url": "/static/reports/performance_boxplot.png",
+                    "heatmap_url": f"/static/reports/agent_heatmap.png?t={cache_ts}",
+                    "boxplot_url": f"/static/reports/performance_boxplot.png?t={cache_ts}",
                     "benchmark_csv_url": "/static/reports/benchmark_40_runs.csv",
                     "audit_traces_url": "/static/reports/audit_traces.jsonl",
                 },
@@ -358,6 +365,22 @@ async def get_benchmark_report():
         "heatmap_image": "/static/reports/agent_heatmap.png",
         "csv_download": "/static/reports/benchmark_40_runs.csv",
         "runs_sample": runs[:5],
+    }
+
+
+@app.post("/api/mas/benchmark/run")
+async def run_live_40_benchmark():
+    """Re-runs the 40-run empirical benchmark and regenerates boxplot & heatmap images."""
+    from evaluation.benchmark_40_runs import run_40_runs_benchmark
+    df = run_40_runs_benchmark()
+    cache_ts = int(time.time() * 1000)
+    return {
+        "success": True,
+        "total_runs": len(df),
+        "mean_latency_s": round(float(df["latency_seconds"].mean()), 4),
+        "boxplot_url": f"/static/reports/performance_boxplot.png?t={cache_ts}",
+        "heatmap_url": f"/static/reports/agent_heatmap.png?t={cache_ts}",
+        "csv_url": f"/static/reports/benchmark_40_runs.csv?t={cache_ts}",
     }
 
 

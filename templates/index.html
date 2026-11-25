@@ -799,7 +799,10 @@
             </div>
             <div class="mt-3 flex justify-between items-center text-xs">
               <span class="text-slate-500 font-semibold">Total Runs: <strong>40 benchmark trials</strong></span>
-              <div class="flex gap-2">
+              <div class="flex items-center gap-2">
+                <button id="run-40-benchmark-btn" onclick="runLive40Benchmark()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors">
+                  Re-run 40-Run Benchmark
+                </button>
                 <a href="/static/reports/benchmark_40_runs.csv" download class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg flex items-center gap-1">
                   <span class="material-symbols-outlined text-xs">download</span> CSV Dataset
                 </a>
@@ -1250,6 +1253,14 @@
       });
     }
 
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
     function renderMasTelemetry(mas) {
       currentMasTelemetry = mas;
 
@@ -1258,15 +1269,20 @@
       if (bbContainer && mas.blackboard_history) {
         bbContainer.innerHTML = '';
         mas.blackboard_history.forEach(evt => {
+          const author = evt.author ?? evt.author_agent ?? 'System';
+          const version = evt.revision !== undefined
+            ? `rev ${evt.revision}${evt.timestamp ? ' · ' + evt.timestamp : ''}`
+            : (evt.state_version ?? '');
+          const preview = evt.preview ?? evt.value_preview ?? '';
           const item = document.createElement('div');
           item.className = 'p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs';
           item.innerHTML = `
             <div class="flex justify-between items-center mb-1">
-              <span class="font-bold text-purple-900">${evt.author_agent}</span>
-              <span class="text-[10px] text-slate-400 font-mono">${evt.state_version}</span>
+              <span class="font-bold text-purple-900">${escapeHtml(author)}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(version)}</span>
             </div>
-            <div class="text-[11px] text-slate-700 font-mono">
-              <span class="text-purple-700 font-bold">${evt.key}</span> ➔ ${evt.value_preview}
+            <div class="text-[11px] text-slate-700 font-mono break-all">
+              <span class="text-purple-700 font-bold">${escapeHtml(evt.key)}</span> ➔ ${escapeHtml(preview)}
             </div>
           `;
           bbContainer.appendChild(item);
@@ -1283,14 +1299,14 @@
           item.innerHTML = `
             <div class="flex justify-between items-center mb-1">
               <div class="flex items-center gap-1 font-bold text-slate-800">
-                <span class="px-1.5 py-0.5 rounded text-[9px] bg-sky-100 text-sky-800 font-mono">${msg.sender_framework}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] bg-sky-100 text-sky-800 font-mono">${escapeHtml(msg.sender_framework)}</span>
                 ➔
-                <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-mono">${msg.recipient_framework}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-mono">${escapeHtml(msg.recipient_framework)}</span>
               </div>
-              <span class="text-[10px] font-mono text-slate-400">${msg.protocol_version}</span>
+              <span class="text-[10px] font-mono text-slate-400">${escapeHtml(msg.protocol_version)}</span>
             </div>
-            <div class="text-[11px] text-blue-800 font-semibold mb-0.5">${msg.intent}</div>
-            <div class="text-[10px] font-mono text-slate-500">Hash: ${msg.state_hash}</div>
+            <div class="text-[11px] text-blue-800 font-semibold mb-0.5">${escapeHtml(msg.intent)}</div>
+            <div class="text-[10px] font-mono text-slate-500">Hash: ${escapeHtml(msg.state_hash)}</div>
           `;
           a2aContainer.appendChild(item);
         });
@@ -1302,18 +1318,40 @@
       // 4. Observability Spans
       const obsContainer = document.getElementById('observability-spans-container');
       if (obsContainer && mas.trace_summary) {
+        const ts = mas.trace_summary;
+        const spans = Array.isArray(ts.spans) ? ts.spans : [];
+        const totalSpans = ts.spans_count ?? ts.total_spans ?? spans.length;
+        const rootSpan = spans.find(s => !s.parent_span_id) || spans[0];
+        const totalDuration = ts.total_duration_ms ?? (rootSpan ? rootSpan.duration_ms : 0);
+        const provHash = ts.provenance?.symptoms_sha256 || ts.provenance?.image_sha256 || ts.input_provenance_hash || 'SHA256 verified';
+        const spansHtml = spans.map(s => `
+          <div class="flex justify-between items-center text-[10px] font-mono bg-white/80 border border-teal-100 rounded px-2 py-1 mt-1">
+            <span class="text-slate-700">${s.parent_span_id ? '↳ ' : ''}${escapeHtml(s.name)}</span>
+            <span class="text-teal-700 font-semibold">${s.duration_ms} ms (${escapeHtml(s.status)})</span>
+          </div>
+        `).join('');
+
         obsContainer.innerHTML = `
           <div class="p-3 bg-teal-50/70 border border-teal-200 rounded-xl">
             <div class="flex justify-between text-xs font-bold text-teal-900 mb-1">
-              <span>Trace ID: ${mas.trace_summary.trace_id}</span>
-              <span class="text-[10px] bg-teal-200 text-teal-900 px-1.5 py-0.5 rounded font-mono">${mas.trace_summary.total_duration_ms} ms</span>
+              <span>Trace ID: ${escapeHtml(ts.trace_id)}</span>
+              <span class="text-[10px] bg-teal-200 text-teal-900 px-1.5 py-0.5 rounded font-mono">${totalDuration} ms</span>
             </div>
             <div class="text-[11px] text-slate-600 space-y-0.5">
-              <div>Total Spans: <strong>${mas.trace_summary.total_spans}</strong> (ADK + CrewAI + PyTorch)</div>
-              <div>Input Provenance Hash: <strong class="font-mono text-[10px]">${mas.trace_summary.input_provenance_hash || 'SHA256 verified'}</strong></div>
+              <div>Total Spans: <strong>${totalSpans}</strong> (ADK + CrewAI + Vision)</div>
+              <div class="break-all">Input Provenance Hash: <strong class="font-mono text-[10px]">${escapeHtml(provHash)}</strong></div>
             </div>
+            ${spansHtml ? `<div class="mt-2 pt-1.5 border-t border-teal-200/70">${spansHtml}</div>` : ''}
           </div>
         `;
+      }
+
+      // 5. Refresh Heatmap & Boxplot images (cache-busted)
+      if (mas.reports) {
+        const hm = document.getElementById('mas-heatmap-img');
+        const bp = document.getElementById('mas-boxplot-img');
+        if (hm && mas.reports.heatmap_url) hm.src = mas.reports.heatmap_url;
+        if (bp && mas.reports.boxplot_url) bp.src = mas.reports.boxplot_url;
       }
     }
 
@@ -1330,6 +1368,17 @@
       updatePydanticDisplay();
     }
 
+    function formatTableRows(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) return 'No table rows.';
+      const cols = Object.keys(rows[0]);
+      const widths = cols.map(c => Math.max(c.length, ...rows.map(r => String(r[c] ?? '').length)));
+      const pad = (val, w) => String(val ?? '').padEnd(w, ' ');
+      const header = cols.map((c, i) => pad(c, widths[i])).join(' | ');
+      const sep = widths.map(w => '-'.repeat(w)).join('-+-');
+      const body = rows.map(r => cols.map((c, i) => pad(r[c], widths[i])).join(' | ')).join('\n');
+      return `${header}\n${sep}\n${body}`;
+    }
+
     function updatePydanticDisplay() {
       const display = document.getElementById('pydantic-output-display');
       if (!display) return;
@@ -1341,7 +1390,7 @@
       if (activePydanticFormat === 'markdown') {
         display.textContent = out.markdown || 'No markdown output.';
       } else if (activePydanticFormat === 'table') {
-        display.textContent = out.table || 'No table output.';
+        display.textContent = Array.isArray(out.table) ? formatTableRows(out.table) : (out.table || 'No table output.');
       } else {
         display.textContent = JSON.stringify(out.json || {}, null, 2);
       }
@@ -1418,21 +1467,51 @@
         const r = await fetch('/api/mas/patterns');
         const data = await r.json();
         tbody.innerHTML = '';
+        const patternLabels = {
+          hierarchical: 'Hierarchical',
+          parallel: 'Parallel',
+          sequential: 'Sequential',
+          react: 'ReAct Loop',
+        };
         Object.keys(data).forEach(pName => {
           const item = data[pName];
+          const label = patternLabels[pName] || pName;
           const tr = document.createElement('tr');
           tr.className = 'border-b border-slate-100';
           tr.innerHTML = `
-            <td class="py-2 px-3 font-bold text-slate-800 capitalize">${pName}</td>
-            <td class="py-2 px-3 text-emerald-600 font-semibold">${item.latency_s}s</td>
+            <td class="py-2 px-3 font-bold text-slate-800">${escapeHtml(label)}</td>
+            <td class="py-2 px-3 text-emerald-600 font-semibold">${Number(item.latency_s).toFixed(4)}s</td>
             <td class="py-2 px-3">${item.intermediate_states} states</td>
-            <td class="py-2 px-3">${item.memory_footprint || 'Optimal'}</td>
-            <td class="py-2 px-3 font-bold ${item.fault_tolerance.includes('High') ? 'text-emerald-700' : 'text-amber-700'}">${item.fault_tolerance}</td>
+            <td class="py-2 px-3">${escapeHtml(item.memory_footprint || 'Optimal')}</td>
+            <td class="py-2 px-3 font-bold ${item.fault_tolerance.includes('High') ? 'text-emerald-700' : 'text-amber-700'}">${escapeHtml(item.fault_tolerance)}</td>
           `;
           tbody.appendChild(tr);
         });
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="5" class="py-2 text-red-600">Error: ${e.message}</td></tr>`;
+      }
+    }
+
+    async function runLive40Benchmark() {
+      const btn = document.getElementById('run-40-benchmark-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Running 40 Trials...';
+      }
+      try {
+        const r = await fetch('/api/mas/benchmark/run', { method: 'POST' });
+        const data = await r.json();
+        const bp = document.getElementById('mas-boxplot-img');
+        const hm = document.getElementById('mas-heatmap-img');
+        if (bp && data.boxplot_url) bp.src = data.boxplot_url;
+        if (hm && data.heatmap_url) hm.src = data.heatmap_url;
+      } catch (e) {
+        alert('Benchmark error: ' + e.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Re-run 40-Run Benchmark';
+        }
       }
     }
 

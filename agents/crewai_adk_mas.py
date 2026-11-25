@@ -312,22 +312,26 @@ class SkinSenseHybridMAS:
         # Record provenance hashes
         tracer.record_provenance(symptoms_text=patient_text)
 
-        # Post initial inputs to blackboard
+        # Post initial inputs to blackboard (monitored)
+        monitor.on_agent_start("InputRouter", framework="Google ADK", input_summary="Multimodal payload ingestion")
         blackboard.post("raw_patient_text", patient_text, author_agent="InputRouter")
         blackboard.post("patient_age", patient_age, author_agent="InputRouter")
         blackboard.post("patient_gender", patient_gender, author_agent="InputRouter")
         blackboard.post("language", language, author_agent="InputRouter")
         blackboard.post("architecture_pattern", pattern.title(), author_agent="InputRouter")
         blackboard.post("messaging_architecture", messaging.title(), author_agent="InputRouter")
+        monitor.on_agent_finish("InputRouter", output_summary="Inputs posted to Blackboard", framework="Google ADK")
 
         # Video sampling if provided
         video_data = None
         target_image = image_path
         if video_path and Path(video_path).exists():
             v_span = tracer.start_span("video_keyframe_sampling", parent_span_id=root_span)
+            monitor.on_agent_start("VideoAgent", framework="OpenCV", input_summary="Video keyframe extraction")
             video_data = self.video_agent.sample_key_frames(video_path)
             if video_data.get("success") and video_data.get("key_frames") and not target_image:
                 target_image = video_data["key_frames"][0]["file_path"]
+            monitor.on_agent_finish("VideoAgent", output_summary=f"Frames: {video_data.get('frames_sampled', 0)}", framework="OpenCV")
             tracer.end_span(v_span, attributes={"frames": video_data.get("frames_sampled", 0)})
 
         # 1. Vision Engine execution
@@ -371,6 +375,7 @@ class SkinSenseHybridMAS:
             "a2a_summary": self.a2a_broker.get_interoperability_summary(),
             "monitoring_logs": monitor.get_logs(),
             "monitoring_metrics": monitor.get_summary_metrics(),
+            "monitor": monitor,
             "trace_summary": tracer.get_summary(),
             "trace_log_file": trace_path,
             "video_data": video_data,
